@@ -1,15 +1,54 @@
 const Individual = require('../../lib/individual');
+const sinon = require('sinon');
 const XError = require('xerror');
 
 describe('Individual', function() {
-	describe('#getFitnessScore', function() {
+	describe('#calculateFitnessScore', function() {
 		it('throws unsupported operation error', function() {
 			let individual = new Individual();
 
-			expect(() => individual.getFitnessScore())
+			expect(() => individual.calculateFitnessScore())
 				.to.throw(XError)
 				.with.property('code')
 				.that.equals(XError.UNSUPPORTED_OPERATION);
+		});
+	});
+
+	describe('#getFitnessScore', function() {
+		let individual;
+
+		beforeEach(function() {
+			individual = new Individual();
+			sinon.stub(individual, 'calculateFitnessScore').returns(42);
+		});
+
+		it('returns result of #calculateFitnessScore', function() {
+			let result = individual.getFitnessScore();
+
+			expect(individual.calculateFitnessScore).to.be.calledOnce;
+			expect(individual.calculateFitnessScore).to.be.calledOn(individual);
+			expect(result).to.equal(42);
+		});
+
+		it('caches nonzero result', function() {
+			individual.getFitnessScore();
+			individual.calculateFitnessScore.resetHistory();
+
+			let result = individual.getFitnessScore();
+
+			expect(individual.calculateFitnessScore).to.not.be.called;
+			expect(result).to.equal(42);
+		});
+
+		it('caches zero result', function() {
+			individual.calculateFitnessScore.returns(0);
+			individual.getFitnessScore();
+			individual.calculateFitnessScore.resetHistory();
+
+			let result = individual.getFitnessScore();
+
+			expect(individual.calculateFitnessScore).to.not.be.called;
+			expect(result).to.equal(0);
 		});
 	});
 
