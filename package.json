@@ -1,0 +1,25 @@
+{
+  "name": "gene-lib",
+  "version": "0.0.1",
+  "description": "Object-oriented genetic algorithm library",
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "eslint . || exit 0",
+    "unit": "mocha ./test/setup.js ./test/unit --recursive -R spec || exit 0",
+    "integration": "mocha ./test/setup.js ./test/integration --recursive -R spec || exit 0",
+    "test": "npm run unit; npm run integration"
+  },
+  "author": "Steve Ripberger",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.19.0",
+    "mocha": "^3.4.2",
+    "sinon": "^2.3.2",
+    "sinon-chai": "^2.10.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "xerror": "^1.1.2"
+  }
+}

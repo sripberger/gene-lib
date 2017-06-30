@@ -1,0 +1,12 @@
+{
+	"env": {
+		"node": true,
+		"mocha": true
+	},
+	"rules": {
+		"no-unused-expressions": 0	// needed for chai expect
+	},
+	"globals": {
+		"expect": false
+	}
+}
