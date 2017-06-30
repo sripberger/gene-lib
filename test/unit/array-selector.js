@@ -1,6 +1,6 @@
 const ArraySelector = require('../../lib/array-selector');
 const Selector = require('../../lib/selector');
-const Individual = require('../lib/individual');
+const TestIndividual = require('../lib/test-individual');
 const sinon = require('sinon');
 
 describe('ArraySelector', function() {
@@ -28,8 +28,8 @@ describe('ArraySelector', function() {
 	describe('#add', function() {
 		it('pushes provided individual onto individuals array', function() {
 			let selector = new ArraySelector();
-			let foo = new Individual('foo');
-			let bar = new Individual('bar');
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
 			selector.individuals = [ foo ];
 
 			selector.add(bar);
@@ -42,9 +42,9 @@ describe('ArraySelector', function() {
 		it('returns length of individuals array', function() {
 			let selector = new ArraySelector();
 			selector.individuals = [
-				new Individual('foo'),
-				new Individual('bar'),
-				new Individual('baz')
+				new TestIndividual('foo'),
+				new TestIndividual('bar'),
+				new TestIndividual('baz')
 			];
 
 			expect(selector.getSize()).to.equal(3);
@@ -59,9 +59,9 @@ describe('ArraySelector', function() {
 		});
 
 		it('returns highest-scoring individual', function() {
-			let foo = new Individual('foo');
-			let bar = new Individual('bar');
-			let baz = new Individual('baz');
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
 			sinon.stub(foo, 'getFitnessScore').returns(8);
 			sinon.stub(bar, 'getFitnessScore').returns(10);
 			sinon.stub(baz, 'getFitnessScore').returns(9);

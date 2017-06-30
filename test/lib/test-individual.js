@@ -1,6 +1,6 @@
 const XError = require('xerror');
 
-class Individual {
+class TestIndividual {
 	constructor(id) {
 		this.id = id;
 	}
@@ -22,4 +22,4 @@ class Individual {
 	}
 }
 
-module.exports = Individual;
+module.exports = TestIndividual;

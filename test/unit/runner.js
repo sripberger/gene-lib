@@ -1,7 +1,7 @@
 const Runner = require('../../lib/runner');
 const sinon = require('sinon');
 const Generation = require('../../lib/generation');
-const Individual = require('../lib/individual');
+const TestIndividual = require('../lib/test-individual');
 
 describe('Runner', function() {
 	it('initializes instance with provided generation and generation limit', function() {
@@ -29,7 +29,7 @@ describe('Runner', function() {
 		beforeEach(function() {
 			generation = new Generation();
 			runner = new Runner(generation);
-			best = new Individual('best');
+			best = new TestIndividual('best');
 			sinon.stub(generation, 'getBest').returns(best);
 			sinon.stub(best, 'isSolution').returns(false);
 		});
@@ -82,8 +82,8 @@ describe('Runner', function() {
 			generation = new Generation();
 			runner = new Runner(generation);
 			oldGeneration = runner.oldGeneration = new Generation();
-			foo = new Individual('foo');
-			bar = new Individual('bar');
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
 
 			sinon.stub(oldGeneration, 'getOffspring').returns([ foo, bar ]);
 			sinon.stub(generation, 'add');
@@ -164,7 +164,7 @@ describe('Runner', function() {
 			runner.runStep.callsFake(() => {
 				generationSize += 1;
 				if (generationSize == 2) {
-					runner.solution = new Individual('solution');
+					runner.solution = new TestIndividual('solution');
 				} else if (generationSize >= 10) {
 					throw new Error('Too many runStep calls');
 				}
@@ -202,7 +202,7 @@ describe('Runner', function() {
 			sinon.stub(runner, 'runGeneration').callsFake(() => {
 				runner.generationCount += 1;
 				if (runner.generationCount === 3) {
-					runner.solution = new Individual('solution');
+					runner.solution = new TestIndividual('solution');
 				}
 			});
 		});
@@ -219,7 +219,7 @@ describe('Runner', function() {
 
 		it('runs no generations if solution is already found', function() {
 			runner.checkForSolution.callsFake(() => {
-				runner.solution = new Individual('solution');
+				runner.solution = new TestIndividual('solution');
 			});
 
 			runner.run();
@@ -243,12 +243,12 @@ describe('Runner', function() {
 		beforeEach(function() {
 			generation = new Generation();
 			runner = new Runner(generation);
-			best = new Individual('best');
+			best = new TestIndividual('best');
 			sinon.stub(generation, 'getBest').returns(best);
 		});
 
 		it('returns solution property if set', function() {
-			let solution = runner.solution = new Individual('solution');
+			let solution = runner.solution = new TestIndividual('solution');
 
 			expect(runner.getBest()).to.equal(solution);
 		});

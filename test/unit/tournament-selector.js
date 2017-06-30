@@ -2,7 +2,7 @@ const TournamentSelector = require('../../lib/tournament-selector');
 const ArraySelector = require('../../lib/array-selector');
 const sinon = require('sinon');
 const _ = require('lodash');
-const Individual = require('../lib/individual');
+const TestIndividual = require('../lib/test-individual');
 
 describe('TournamentSelector', function() {
 	it('extends ArraySelector', function() {
@@ -24,9 +24,9 @@ describe('TournamentSelector', function() {
 		let selector, sample;
 
 		beforeEach(function() {
-			let foo = new Individual('foo');
-			let bar = new Individual('bar');
-			let baz = new Individual('baz');
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
 
 			selector = new TournamentSelector();
 			sample = [ foo, bar ];
@@ -72,9 +72,9 @@ describe('TournamentSelector', function() {
 		});
 
 		it('returns highest-scoring individual from tournament', function() {
-			let foo = new Individual('foo');
-			let bar = new Individual('bar');
-			let baz = new Individual('baz');
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
 			sinon.stub(foo, 'getFitnessScore').returns(8);
 			sinon.stub(bar, 'getFitnessScore').returns(10);
 			sinon.stub(baz, 'getFitnessScore').returns(9);

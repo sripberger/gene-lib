@@ -1,7 +1,7 @@
 const Generation = require('../../lib/generation');
 const sinon = require('sinon');
 const Selector = require('../../lib/selector');
-const Individual = require('../lib/individual');
+const TestIndividual = require('../lib/test-individual');
 
 describe('Generation', function() {
 	let sandbox;
@@ -39,8 +39,8 @@ describe('Generation', function() {
 		beforeEach(function() {
 			selector = new Selector();
 			generation = new Generation(selector);
-			foo = new Individual('foo');
-			bar = new Individual('bar');
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
 			sinon.stub(selector, 'add');
 		});
 
@@ -81,7 +81,7 @@ describe('Generation', function() {
 		it('returns best individual from selector', function() {
 			let selector = new Selector();
 			let generation = new Generation(selector);
-			let best = new Individual('best');
+			let best = new TestIndividual('best');
 			sinon.stub(selector, 'getBest').returns(best);
 
 			let result = generation.getBest();
@@ -99,10 +99,10 @@ describe('Generation', function() {
 			selector = new Selector();
 			settings = { crossoverRate: 0.7 };
 			generation = new Generation(selector, settings);
-			foo = new Individual('foo');
-			bar = new Individual('bar');
-			fooBar = new Individual('foo-bar');
-			barFoo = new Individual('bar-foo');
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
+			fooBar = new TestIndividual('foo-bar');
+			barFoo = new TestIndividual('bar-foo');
 
 			sandbox.stub(selector, 'select')
 				.onFirstCall().returns(foo)
@@ -155,10 +155,10 @@ describe('Generation', function() {
 		beforeEach(function() {
 			settings = { mutationRate: 0.1 };
 			generation = new Generation(new Selector(), settings);
-			foo = new Individual('foo');
-			bar = new Individual('bar');
-			fooPrime = new Individual('foo-prime');
-			barPrime = new Individual('bar-prime');
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
+			fooPrime = new TestIndividual('foo-prime');
+			barPrime = new TestIndividual('bar-prime');
 
 			sandbox.stub(generation, 'getUnmutatedOffspring')
 				.returns([ foo, bar ]);
