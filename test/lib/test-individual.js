@@ -1,24 +1,9 @@
-const XError = require('xerror');
+const Individual = require('../../lib/individual');
 
-class TestIndividual {
+class TestIndividual extends Individual {
 	constructor(id) {
+		super();
 		this.id = id;
-	}
-
-	getFitnessScore() {
-		throw new XError(XError.NOT_IMPLEMENTED);
-	}
-
-	isSolution() {
-		throw new XError(XError.NOT_IMPLEMENTED);
-	}
-
-	crossover() {
-		throw new XError(XError.NOT_IMPLEMENTED);
-	}
-
-	mutate() {
-		throw new XError(XError.NOT_IMPLEMENTED);
 	}
 }
 
