@@ -53,15 +53,34 @@ describe('Individual', function() {
 	});
 
 	describe('#isSolution', function() {
-		it('throws unsupported operation error', function() {
-			let individual = new Individual();
+		let individual;
 
-			expect(() => individual.isSolution())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+		beforeEach(function() {
+			individual = new Individual();
+			sinon.stub(individual, 'getFitnessScore');
+		});
+
+		it('returns true if fitness score is Infinity', function() {
+			individual.getFitnessScore.returns(Infinity);
+
+			let result = individual.isSolution();
+
+			expect(individual.getFitnessScore).to.be.calledOnce;
+			expect(individual.getFitnessScore).to.be.calledOn(individual);
+			expect(result).to.be.true;
+		});
+
+		it('returns false otherwise', function() {
+			individual.getFitnessScore.returns(42);
+
+			let result = individual.isSolution();
+
+			expect(individual.getFitnessScore).to.be.calledOnce;
+			expect(individual.getFitnessScore).to.be.calledOn(individual);
+			expect(result).to.be.false;
 		});
 	});
+
 
 	describe('#crossover', function() {
 		it('throws unsupported operation error', function() {
