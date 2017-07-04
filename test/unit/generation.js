@@ -1,5 +1,6 @@
 const Generation = require('../../lib/generation');
 const sinon = require('sinon');
+const _ = require('lodash');
 const Selector = require('../../lib/selector');
 const TestIndividual = require('../lib/test-individual');
 
@@ -97,7 +98,7 @@ describe('Generation', function() {
 
 		beforeEach(function() {
 			selector = new Selector();
-			settings = { crossoverRate: 0.7 };
+			settings = { crossoverRate: 0.5 };
 			generation = new Generation(selector, settings);
 			foo = new TestIndividual('foo');
 			bar = new TestIndividual('bar');
@@ -108,44 +109,103 @@ describe('Generation', function() {
 				.onFirstCall().returns(foo)
 				.onSecondCall().returns(bar);
 
+			sandbox.stub(_, 'random');
+
 			sandbox.stub(foo, 'crossover').returns([ fooBar, barFoo ]);
 		});
 
-		it('creates offspring from two selected mates', function() {
-			let result = generation.getUnmutatedOffspring();
+		it('selects two mates', function() {
+			generation.getUnmutatedOffspring();
 
 			expect(selector.select).to.be.calledTwice;
 			expect(selector.select).to.always.be.calledOn(selector);
-			expect(foo.crossover).to.be.calledOnce;
-			expect(foo.crossover).to.be.calledOn(foo);
-			expect(foo.crossover).to.be.calledWith(bar, settings.crossoverRate);
-			expect(result).to.deep.equal([ fooBar, barFoo ]);
 		});
 
-		it('uses default crossover rate of 0', function() {
-			delete settings.crossoverRate;
+		context('compoundCrossover option is not set', function() {
+			it('gets a random float between 0 and 1', function() {
+				generation.getUnmutatedOffspring();
 
-			let result = generation.getUnmutatedOffspring();
+				expect(_.random).to.be.calledOnce;
+				expect(_.random).to.be.calledOn(_);
+				expect(_.random).to.be.calledWith(0, 1, true);
+			});
 
-			expect(selector.select).to.be.calledTwice;
-			expect(selector.select).to.always.be.calledOn(selector);
-			expect(foo.crossover).to.be.calledOnce;
-			expect(foo.crossover).to.be.calledOn(foo);
-			expect(foo.crossover).to.be.calledWith(bar, 0);
-			expect(result).to.deep.equal([ fooBar, barFoo ]);
+			context('random float is less than rate', function() {
+				beforeEach(function() {
+					_.random.returns(0.49);
+				});
+
+				it('returns crossover of mates', function() {
+					let result = generation.getUnmutatedOffspring();
+
+					expect(foo.crossover).to.be.calledOnce;
+					expect(foo.crossover).to.be.calledOn(foo);
+					expect(foo.crossover).to.be.calledWith(bar, 0.5);
+					expect(result).to.deep.equal([ fooBar, barFoo ]);
+				});
+
+				it('wraps single result in an array', function() {
+					foo.crossover.returns(fooBar);
+
+					let result = generation.getUnmutatedOffspring();
+
+					expect(foo.crossover).to.be.calledWith(bar, 0.5);
+					expect(result).to.deep.equal([ fooBar ]);
+				});
+			});
+
+			context('random float is equal to rate', function() {
+				it('returns unchanged mates', function() {
+					_.random.returns(0.5);
+
+					let result = generation.getUnmutatedOffspring();
+
+					expect(result).to.deep.equal([ foo, bar ]);
+				});
+			});
+
+			context('random float is greater than rate', function() {
+				it('returns unchanged mates', function() {
+					_.random.returns(0.51);
+
+					let result = generation.getUnmutatedOffspring();
+
+					expect(result).to.deep.equal([ foo, bar ]);
+				});
+			});
 		});
 
-		it('returns single offspring in an array', function() {
-			foo.crossover.returns(fooBar);
+		context('compoundCrossover option is true', function() {
+			beforeEach(function() {
+				settings.compoundCrossover = true;
+			});
 
-			let result = generation.getUnmutatedOffspring();
+			it('returns crossover without getting random float', function() {
+				let result = generation.getUnmutatedOffspring();
 
-			expect(selector.select).to.be.calledTwice;
-			expect(selector.select).to.always.be.calledOn(selector);
-			expect(foo.crossover).to.be.calledOnce;
-			expect(foo.crossover).to.be.calledOn(foo);
-			expect(foo.crossover).to.be.calledWith(bar, settings.crossoverRate);
-			expect(result).to.deep.equal([ fooBar ]);
+				expect(_.random).to.not.be.called;
+				expect(foo.crossover).to.be.calledOnce;
+				expect(foo.crossover).to.be.calledOn(foo);
+				expect(foo.crossover).to.be.calledWith(bar, 0.5);
+				expect(result).to.deep.equal([ fooBar, barFoo ]);
+			});
+
+			it('wraps single result in an array', function() {
+				foo.crossover.returns(fooBar);
+
+				let result = generation.getUnmutatedOffspring();
+
+				expect(foo.crossover).to.be.calledWith(bar, 0.5);
+				expect(result).to.deep.equal([ fooBar ]);
+			});
+
+			it('uses default crossover rate of zero', function() {
+				delete settings.crossoverRate;
+
+				generation.getUnmutatedOffspring();
+
+				expect(foo.crossover).to.be.calledWith(bar, 0);
+			});
 		});
 	});
 
