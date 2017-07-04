@@ -34,6 +34,27 @@ describe('Generation', function() {
 		expect(generation.settings).to.deep.equal({});
 	});
 
+	describe('::create', function() {
+		it('returns an instance with provided selector class and settings', function() {
+			let TestSelector = sinon.spy(function TestSelector() {});
+			let selectorSettings = { foo: 'bar' };
+			let generationSettings = { baz: 'qux' };
+
+			let result = Generation.create(
+				TestSelector,
+				selectorSettings,
+				generationSettings
+			);
+
+			expect(TestSelector).to.be.calledOnce;
+			expect(TestSelector).to.be.calledWithNew;
+			expect(TestSelector).to.be.calledWith(selectorSettings);
+			expect(result).to.be.an.instanceof(Generation);
+			expect(result.selector).to.equal(TestSelector.firstCall.returnValue);
+			expect(result.settings).to.equal(generationSettings);
+		});
+	});
+
 	describe('#add', function() {
 		let selector, generation, foo, bar;
 
