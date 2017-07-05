@@ -4,22 +4,27 @@ const Generation = require('../../lib/generation');
 const TestIndividual = require('../lib/test-individual');
 
 describe('Runner', function() {
-	it('initializes instance with provided generation and generation limit', function() {
+	it('initializes instance with provided generation and settings', function() {
 		let generation = new Generation();
-		let generationLimit = 42;
+		let settings = {
+			generationSize: 42,
+			generationLimit: 100
+		};
 
-		let runner = new Runner(generation, generationLimit);
+		let runner = new Runner(generation, settings);
 
 		expect(runner.generation).to.equal(generation);
-		expect(runner.generationLimit).to.equal(generationLimit);
+		expect(runner.generationSize).to.equal(settings.generationSize);
+		expect(runner.generationLimit).to.equal(settings.generationLimit);
 		expect(runner.oldGeneration).to.be.null;
 		expect(runner.generationCount).to.equal(0);
 		expect(runner.solution).to.be.null;
 	});
 
-	it('uses default generation limit of Infinity', function() {
+	it('uses appropriate default settings', function() {
 		let runner = new Runner();
 
+		expect(runner.generationSize).to.equal(100);
 		expect(runner.generationLimit).to.equal(Infinity);
 	});
 
@@ -116,41 +121,37 @@ describe('Runner', function() {
 	});
 
 	describe('#populateGeneration', function() {
-		let generation, runner, oldGeneration, generationSize;
+		let generation, runner, size;
 
 		beforeEach(function() {
 			generation = new Generation();
-			runner = new Runner(generation);
-			oldGeneration = runner.oldGeneration = new Generation();
-			generationSize = 0;
+			runner = new Runner(generation, { generationSize: 3 });
+			size = 0;
 
 			sinon.stub(runner, 'runStep');
-			sinon.stub(oldGeneration, 'getSize').returns(3);
-			sinon.stub(generation, 'getSize').callsFake(() => generationSize);
+			sinon.stub(generation, 'getSize').callsFake(() => size);
 		});
 
-		it('calls runStep until generation size matches old', function() {
+		it('calls runStep until generation size matches setting', function() {
 			runner.runStep.callsFake(() => {
-				generationSize += 1;
-				if (generationSize >= 10) {
+				size += 1;
+				if (size >= 10) {
 					throw new Error('Too many runStep calls');
 				}
 			});
 
 			runner.populateGeneration();
 
-			expect(oldGeneration.getSize).to.be.called;
-			expect(oldGeneration.getSize).to.always.be.calledOn(oldGeneration);
 			expect(generation.getSize).to.be.called;
 			expect(generation.getSize).to.always.be.calledOn(generation);
 			expect(runner.runStep).to.be.calledThrice;
 			expect(runner.runStep).to.always.be.calledOn(runner);
 		});
 
-		it('stops when generation size exceeds old size', function() {
+		it('stops when generation size exceeds setting', function() {
 			runner.runStep.callsFake(() => {
-				generationSize += 2;
-				if (generationSize >= 10) {
+				size += 2;
+				if (size >= 10) {
 					throw new Error('Too many runStep calls');
 				}
 			});
@@ -162,10 +163,10 @@ describe('Runner', function() {
 
 		it('stops when solution is found', function() {
 			runner.runStep.callsFake(() => {
-				generationSize += 1;
-				if (generationSize == 2) {
+				size += 1;
+				if (size == 2) {
 					runner.solution = new TestIndividual('solution');
-				} else if (generationSize >= 10) {
+				} else if (size >= 10) {
 					throw new Error('Too many runStep calls');
 				}
 			});
