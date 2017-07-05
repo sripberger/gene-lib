@@ -99,6 +99,34 @@ describe('Generation', function() {
 		});
 	});
 
+	describe('#populate', function() {
+		it('adds factory results until provided size is reached', function() {
+			let size = 1;
+			let generation = new Generation();
+			let factory = sinon.stub();
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
+			sinon.stub(generation, 'getSize').callsFake(() => size);
+			sinon.stub(generation, 'add').callsFake(() => size += 1);
+			factory
+				.onFirstCall().returns(foo)
+				.onSecondCall().returns(bar)
+				.onThirdCall().returns(baz);
+
+			generation.populate(4, factory);
+
+			expect(generation.getSize).to.be.called;
+			expect(generation.getSize).to.always.be.calledOn(generation);
+			expect(factory).to.be.calledThrice;
+			expect(generation.add).to.be.calledThrice;
+			expect(generation.add).to.always.be.calledOn(generation);
+			expect(generation.add).to.be.calledWith(foo);
+			expect(generation.add).to.be.calledWith(bar);
+			expect(generation.add).to.be.calledWith(baz);
+		});
+	});
+
 	describe('#getBest', function() {
 		it('returns best individual from selector', function() {
 			let selector = new Selector();
