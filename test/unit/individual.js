@@ -1,4 +1,5 @@
 const Individual = require('../../lib/individual');
+const TestIndividual = require('../lib/test-individual');
 const sinon = require('sinon');
 const XError = require('xerror');
 
@@ -92,24 +93,19 @@ describe('Individual', function() {
 
 
 	describe('#crossover', function() {
-		it('throws unsupported operation error', function() {
-			let individual = new Individual();
+		it('returns unchanged parents', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
 
-			expect(() => individual.crossover())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+			expect(foo.crossover(bar)).to.deep.equal([ foo, bar ]);
 		});
 	});
 
 	describe('#mutate', function() {
-		it('throws unsupported operation error', function() {
+		it('returns unchanged instance', function() {
 			let individual = new Individual();
 
-			expect(() => individual.mutate())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+			expect(individual.mutate()).to.equal(individual);
 		});
 	});
 });
