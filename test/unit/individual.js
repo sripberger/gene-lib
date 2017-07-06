@@ -3,6 +3,15 @@ const sinon = require('sinon');
 const XError = require('xerror');
 
 describe('Individual', function() {
+	describe('::create', function() {
+		it('throws unsupported operation error', function() {
+			expect(() => Individual.create())
+				.to.throw(XError)
+				.with.property('code')
+				.that.equals(XError.UNSUPPORTED_OPERATION);
+		});
+	});
+
 	describe('#calculateFitnessScore', function() {
 		it('throws unsupported operation error', function() {
 			let individual = new Individual();
