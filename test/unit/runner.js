@@ -6,26 +6,21 @@ const TestIndividual = require('../lib/test-individual');
 describe('Runner', function() {
 	it('initializes instance with provided generation and settings', function() {
 		let generation = new Generation();
-		let settings = {
-			generationSize: 42,
-			generationLimit: 100
-		};
+		let settings = { foo: 'bar' };
 
 		let runner = new Runner(generation, settings);
 
 		expect(runner.generation).to.equal(generation);
-		expect(runner.generationSize).to.equal(settings.generationSize);
-		expect(runner.generationLimit).to.equal(settings.generationLimit);
+		expect(runner.settings).to.equal(settings);
 		expect(runner.oldGeneration).to.be.null;
 		expect(runner.generationCount).to.equal(0);
 		expect(runner.solution).to.be.null;
 	});
 
-	it('uses appropriate default settings', function() {
+	it('defaults to empty settings object', function() {
 		let runner = new Runner();
 
-		expect(runner.generationSize).to.equal(100);
-		expect(runner.generationLimit).to.equal(Infinity);
+		expect(runner.settings).to.deep.equal({});
 	});
 
 	describe('#checkForSolution', function() {
@@ -132,7 +127,7 @@ describe('Runner', function() {
 			sinon.stub(generation, 'getSize').callsFake(() => size);
 		});
 
-		it('calls runStep until generation size matches setting', function() {
+		it('calls runStep until generation size matches generationSize setting', function() {
 			runner.runStep.callsFake(() => {
 				size += 1;
 				if (size >= 10) {
@@ -229,12 +224,20 @@ describe('Runner', function() {
 		});
 
 		it('stops when generation limit is reached', function() {
-			runner.generationLimit = 2;
+			runner.settings.generationLimit = 2;
 
 			runner.run();
 
 			expect(runner.runGeneration).to.be.calledTwice;
 			expect(runner.runGeneration).to.always.be.calledOn(runner);
+		});
+
+		it('supports generation limit of zero', function() {
+			runner.settings.generationLimit = 0;
+
+			runner.run();
+
+			expect(runner.runGeneration).to.not.be.called;
 		});
 	});
 
