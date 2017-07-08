@@ -157,7 +157,7 @@ describe('Runner', function() {
 		});
 	});
 
-	describe('#populateGeneration', function() {
+	describe('#populateNewGeneration', function() {
 		let generation, runner, size;
 
 		beforeEach(function() {
@@ -177,7 +177,7 @@ describe('Runner', function() {
 				}
 			});
 
-			runner.populateGeneration();
+			runner.populateNewGeneration();
 
 			expect(generation.getSize).to.be.called;
 			expect(generation.getSize).to.always.be.calledOn(generation);
@@ -193,7 +193,7 @@ describe('Runner', function() {
 				}
 			});
 
-			runner.populateGeneration();
+			runner.populateNewGeneration();
 
 			expect(runner.runStep).to.be.calledTwice;
 		});
@@ -208,7 +208,7 @@ describe('Runner', function() {
 				}
 			});
 
-			runner.populateGeneration();
+			runner.populateNewGeneration();
 
 			expect(runner.runStep).to.be.calledTwice;
 		});
@@ -218,16 +218,16 @@ describe('Runner', function() {
 		it('starts and populates a new generation', function() {
 			let runner = new Runner();
 			sinon.stub(runner, 'startNewGeneration');
-			sinon.stub(runner, 'populateGeneration');
+			sinon.stub(runner, 'populateNewGeneration');
 
 			runner.runGeneration();
 
 			expect(runner.startNewGeneration).to.be.calledOnce;
 			expect(runner.startNewGeneration).to.be.calledOn(runner);
-			expect(runner.populateGeneration).to.be.calledOnce;
-			expect(runner.populateGeneration).to.be.calledOn(runner);
+			expect(runner.populateNewGeneration).to.be.calledOnce;
+			expect(runner.populateNewGeneration).to.be.calledOn(runner);
 			expect(runner.startNewGeneration).to.be
-				.calledBefore(runner.populateGeneration);
+				.calledBefore(runner.populateNewGeneration);
 		});
 	});
 
