@@ -4,6 +4,16 @@ const Generation = require('../../lib/generation');
 const TestIndividual = require('../lib/test-individual');
 
 describe('Runner', function() {
+	let sandbox;
+
+	beforeEach(function() {
+		sandbox = sinon.sandbox.create();
+	});
+
+	afterEach(function() {
+		sandbox.restore();
+	});
+
 	it('initializes instance with provided generation and settings', function() {
 		let generation = new Generation();
 		let settings = { foo: 'bar' };
@@ -21,6 +31,38 @@ describe('Runner', function() {
 		let runner = new Runner();
 
 		expect(runner.settings).to.deep.equal({});
+	});
+
+	describe('::create', function() {
+		it('creates a populated runner based on provided settings object', function() {
+			let generationSize = 20;
+			let settings = {
+				runnerSettings: { generationSize },
+				generationSettings: { foo: 'bar' },
+				selectorClass: function TestSelector() {},
+				selectorSettings: { baz: 'qux' }
+
+			};
+			let generation = new Generation();
+			sandbox.stub(Generation, 'create').returns(generation);
+			sinon.stub(generation, 'populate');
+
+			let result = Runner.create(settings);
+
+			expect(Generation.create).to.be.calledOnce;
+			expect(Generation.create).to.be.calledOn(Generation);
+			expect(Generation.create).to.be.calledWith(
+				settings.selectorClass,
+				settings.selectorSettings,
+				settings.generationSettings
+			);
+			expect(generation.populate).to.be.calledOnce;
+			expect(generation.populate).to.be.calledOn(generation);
+			expect(generation.populate).to.be.calledWith(generationSize);
+			expect(result).to.be.an.instanceof(Runner);
+			expect(result.generation).to.equal(generation);
+			expect(result.settings).to.equal(settings.runnerSettings);
+		});
 	});
 
 	describe('#checkForSolution', function() {
