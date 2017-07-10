@@ -104,6 +104,7 @@ describe('Generation', function() {
 			let size = 1;
 			let generation = new Generation();
 			let factory = sinon.stub();
+			let factoryArg = 'factory argument';
 			let foo = new TestIndividual('foo');
 			let bar = new TestIndividual('bar');
 			let baz = new TestIndividual('baz');
@@ -114,11 +115,12 @@ describe('Generation', function() {
 				.onSecondCall().returns(bar)
 				.onThirdCall().returns(baz);
 
-			generation.populate(4, factory);
+			generation.populate(4, factory, factoryArg);
 
 			expect(generation.getSize).to.be.called;
 			expect(generation.getSize).to.always.be.calledOn(generation);
 			expect(factory).to.be.calledThrice;
+			expect(factory).to.always.be.calledWith(factoryArg);
 			expect(generation.add).to.be.calledThrice;
 			expect(generation.add).to.always.be.calledOn(generation);
 			expect(generation.add).to.be.calledWith(foo);
