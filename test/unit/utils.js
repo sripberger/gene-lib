@@ -70,7 +70,8 @@ describe('utils', function() {
 				mutationRate: 0.1,
 				selectorClass: Selector,
 				selectorSettings: { foo: 'bar' },
-				createIndividual: () => {}
+				createIndividual: () => {},
+				createArg: 'create argument'
 			};
 
 			expect(utils.categorizeSettings(settings)).to.deep.equal({
@@ -85,7 +86,8 @@ describe('utils', function() {
 				},
 				selectorClass: settings.selectorClass,
 				selectorSettings: settings.selectorSettings,
-				createIndividual: settings.createIndividual
+				createIndividual: settings.createIndividual,
+				createArg: settings.createArg
 			});
 		});
 	});
