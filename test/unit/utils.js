@@ -2,6 +2,7 @@ const utils = require('../../lib/utils');
 const sinon = require('sinon');
 const Selector = require('../../lib/selector');
 const TournamentSelector = require('../../lib/tournament-selector');
+const Runner = require('../../lib/runner');
 const TestIndividual = require('../lib/test-individual');
 
 describe('utils', function() {
@@ -105,6 +106,34 @@ describe('utils', function() {
 			expect(utils.categorizeSettings).to.be.calledOn(utils);
 			expect(utils.categorizeSettings).to.be.calledWith(normalized);
 			expect(result).to.equal(categorized);
+		});
+	});
+
+	describe('::run', function() {
+		it('runs a genetic algorithm with the provided settings', function() {
+			let settings = { foo: 'bar' };
+			let transformedSettings = { baz: 'qux' };
+			let runner = new Runner();
+			let best = new TestIndividual('best');
+			sandbox.stub(utils, 'transformSettings').returns(transformedSettings);
+			sandbox.stub(Runner, 'create').returns(runner);
+			sandbox.stub(runner, 'run');
+			sandbox.stub(runner, 'getBest').returns(best);
+
+			let result = utils.run(settings);
+
+			expect(utils.transformSettings).to.be.calledOnce;
+			expect(utils.transformSettings).to.be.calledOn(utils);
+			expect(utils.transformSettings).to.be.calledWith(settings);
+			expect(Runner.create).to.be.calledOnce;
+			expect(Runner.create).to.be.calledOn(Runner);
+			expect(Runner.create).to.be.calledWith(transformedSettings);
+			expect(runner.run).to.be.calledOnce;
+			expect(runner.run).to.be.calledOn(runner);
+			expect(runner.getBest).to.be.calledOnce;
+			expect(runner.getBest).to.be.calledOn(runner);
+			expect(runner.getBest).to.be.calledAfter(runner.run);
+			expect(result).to.equal(best);
 		});
 	});
 });
