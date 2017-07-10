@@ -26,7 +26,8 @@ describe('utils', function() {
 				mutationRate: 0.1,
 				selectorClass: Selector,
 				selectorSettings: { foo: 'bar' },
-				createIndividual: () => {}
+				createIndividual: () => {},
+				createArg: 'create argument'
 			};
 
 			expect(utils.normalizeSettings(settings)).to.deep.equal(settings);
