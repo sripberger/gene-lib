@@ -40,8 +40,9 @@ describe('Runner', function() {
 				runnerSettings: { generationSize },
 				generationSettings: { foo: 'bar' },
 				selectorClass: function TestSelector() {},
-				selectorSettings: { baz: 'qux' }
-
+				selectorSettings: { baz: 'qux' },
+				createIndividual: () => {},
+				createArg: 'create argument'
 			};
 			let generation = new Generation();
 			sandbox.stub(Generation, 'create').returns(generation);
@@ -58,7 +59,11 @@ describe('Runner', function() {
 			);
 			expect(generation.populate).to.be.calledOnce;
 			expect(generation.populate).to.be.calledOn(generation);
-			expect(generation.populate).to.be.calledWith(generationSize);
+			expect(generation.populate).to.be.calledWith(
+				generationSize,
+				settings.createIndividual,
+				settings.createArg
+			);
 			expect(result).to.be.an.instanceof(Runner);
 			expect(result.generation).to.equal(generation);
 			expect(result.settings).to.equal(settings.runnerSettings);
