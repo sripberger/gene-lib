@@ -1,5 +1,6 @@
 const utils = require('../../lib/utils');
 const sinon = require('sinon');
+const _ = require('lodash');
 const Selector = require('../../lib/selector');
 const TournamentSelector = require('../../lib/tournament-selector');
 const Runner = require('../../lib/runner');
@@ -137,6 +138,53 @@ describe('utils', function() {
 			expect(runner.getBest).to.be.calledOn(runner);
 			expect(runner.getBest).to.be.calledAfter(runner.run);
 			expect(result).to.equal(best);
+		});
+	});
+
+	describe('::getCrossoverRange', function() {
+		const length = 10;
+
+		beforeEach(function() {
+			sandbox.stub(_, 'random');
+		});
+
+		it('returns two random indices between 0 and length', function() {
+			_.random
+				.onFirstCall().returns(3)
+				.onSecondCall().returns(7);
+
+			let result = utils.getCrossoverRange(length);
+
+			expect(_.random).to.be.calledTwice;
+			expect(_.random).to.always.be.calledOn(_);
+			expect(_.random).to.always.be.calledWithExactly(0, length);
+			expect(result).to.deep.equal([ 3, 7 ]);
+		});
+
+		it('returns smaller of two results first', function() {
+			_.random
+				.onFirstCall().returns(7)
+				.onSecondCall().returns(3);
+
+			expect(utils.getCrossoverRange(length)).to.deep.equal([ 3, 7 ]);
+		});
+	});
+
+	describe('::pmx', function() {
+		it('performs a partially-mapped crossover', function() {
+			let left = [ 1, 2, 3, 4, 5, 6, 7 ];
+			let right = [ 5, 4, 6, 7, 2, 1, 3 ];
+			sandbox.stub(utils, 'getCrossoverRange').returns([ 2, 6 ]);
+
+			let result = utils.pmx(left, right);
+
+			expect(utils.getCrossoverRange).to.be.calledOnce;
+			expect(utils.getCrossoverRange).to.be.calledOn(utils);
+			expect(utils.getCrossoverRange).to.be.calledWith(left.length);
+			expect(result).to.deep.equal([
+				[ 3, 5, 6, 7, 2, 1, 4 ],
+				[ 2, 7, 3, 4, 5, 6, 1 ]
+			]);
 		});
 	});
 });
