@@ -1,8 +1,18 @@
 {
   "name": "gene-lib",
   "version": "0.0.1",
-  "description": "Object-oriented genetic algorithm library",
+  "description": "Object-oriented genetic algorithm framework",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sripberger/gene-lib.git"
+  },
+  "keywords": [
+    "genetic",
+    "algorithm",
+    "ga",
+    "gene"
+  ],
   "scripts": {
     "lint": "eslint . || exit 0",
     "unit": "mocha ./test/setup.js ./test/unit --recursive -R spec || exit 0",
