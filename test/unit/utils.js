@@ -71,6 +71,25 @@ describe('utils', function() {
 		});
 	});
 
+	describe('::getCrossoverIndices', function() {
+		it('does the thing', function() {
+			let length = 5;
+			sandbox.stub(utils, 'boolChance')
+				.onCall(0).returns(false)
+				.onCall(1).returns(true)
+				.onCall(2).returns(false)
+				.onCall(3).returns(false)
+				.onCall(4).returns(true);
+
+			let result = utils.getCrossoverIndices(length);
+
+			expect(utils.boolChance).to.have.callCount(length);
+			expect(utils.boolChance).to.always.be.calledOn(utils);
+			expect(utils.boolChance).to.always.be.calledWith(0.5);
+			expect(result).to.deep.equal([ 1, 4 ]);
+		});
+	});
+
 	describe('::pmx', function() {
 		it('performs a partially-mapped crossover', function() {
 			let left = [ 1, 2, 3, 4, 5, 6, 7 ];

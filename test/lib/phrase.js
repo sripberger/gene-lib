@@ -1,4 +1,4 @@
-const { Individual } = require('../../lib');
+const { Individual, getCrossoverIndices } = require('../../lib');
 const _ = require('lodash');
 const alphabet = 'abcdefghijklmnopqrstuvwxyz !,';
 
@@ -47,8 +47,9 @@ class Phrase extends Individual {
 	crossover(other) {
 		let leftChars = [];
 		let rightChars = [];
+		let crossoverIndices = getCrossoverIndices(this.str.length);
 		for (let i = 0; i < this.str.length; i += 1) {
-			if (Math.random() > 0.5) {
+			if (_.includes(crossoverIndices, i)) {
 				leftChars.push(this.str.charAt(i));
 				rightChars.push(other.str.charAt(i));
 			} else {
