@@ -1,7 +1,7 @@
 const Generation = require('../../lib/generation');
 const sinon = require('sinon');
-const _ = require('lodash');
 const Selector = require('../../lib/selector');
+const utils = require('../../lib/utils');
 const TestIndividual = require('../lib/test-individual');
 
 describe('Generation', function() {
@@ -160,7 +160,7 @@ describe('Generation', function() {
 				.onFirstCall().returns(foo)
 				.onSecondCall().returns(bar);
 
-			sandbox.stub(_, 'random');
+			sandbox.stub(utils, 'boolChance');
 
 			sandbox.stub(foo, 'crossover').returns([ fooBar, barFoo ]);
 		});
@@ -173,17 +173,17 @@ describe('Generation', function() {
 		});
 
 		context('compoundCrossover option is not set', function() {
-			it('gets a random float between 0 and 1', function() {
+			it('calls utils::boolChance with crossover rate', function() {
 				generation.getUnmutatedOffspring();
 
-				expect(_.random).to.be.calledOnce;
-				expect(_.random).to.be.calledOn(_);
-				expect(_.random).to.be.calledWith(0, 1, true);
+				expect(utils.boolChance).to.be.calledOnce;
+				expect(utils.boolChance).to.be.calledOn(utils);
+				expect(utils.boolChance).to.be.calledWith(0.5);
 			});
 
-			context('random float is less than rate', function() {
+			context('utils::boolChance returns true', function() {
 				beforeEach(function() {
-					_.random.returns(0.49);
+					utils.boolChance.returns(true);
 				});
 
 				it('returns crossover of mates', function() {
@@ -205,19 +205,9 @@ describe('Generation', function() {
 				});
 			});
 
-			context('random float is equal to rate', function() {
+			context('utils::boolChance returns false', function() {
 				it('returns unchanged mates', function() {
-					_.random.returns(0.5);
-
-					let result = generation.getUnmutatedOffspring();
-
-					expect(result).to.deep.equal([ foo, bar ]);
-				});
-			});
-
-			context('random float is greater than rate', function() {
-				it('returns unchanged mates', function() {
-					_.random.returns(0.51);
+					utils.boolChance.returns(false);
 
 					let result = generation.getUnmutatedOffspring();
 
@@ -231,10 +221,10 @@ describe('Generation', function() {
 				settings.compoundCrossover = true;
 			});
 
-			it('returns crossover without getting random float', function() {
+			it('returns crossover without calling utils::boolChance', function() {
 				let result = generation.getUnmutatedOffspring();
 
-				expect(_.random).to.not.be.called;
+				expect(utils.boolChance).to.not.be.called;
 				expect(foo.crossover).to.be.calledOnce;
 				expect(foo.crossover).to.be.calledOn(foo);
 				expect(foo.crossover).to.be.calledWith(bar, 0.5);
