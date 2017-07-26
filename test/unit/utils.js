@@ -42,28 +42,42 @@ describe('utils', function() {
 		});
 	});
 
+	describe('::getCrossoverPoint', function() {
+		it('returns a random index between 0 and length', function() {
+			let length = 10;
+			sandbox.stub(_, 'random').returns(3);
+
+			let result = utils.getCrossoverPoint(length);
+
+			expect(_.random).to.be.calledOnce;
+			expect(_.random).to.be.calledOn(_);
+			expect(_.random).to.be.calledWithExactly(0, length);
+			expect(result).to.equal(3);
+		});
+	});
+
 	describe('::getCrossoverRange', function() {
 		const length = 10;
 
 		beforeEach(function() {
-			sandbox.stub(_, 'random');
+			sandbox.stub(utils, 'getCrossoverPoint');
 		});
 
-		it('returns two random indices between 0 and length', function() {
-			_.random
+		it('returns two crossover points', function() {
+			utils.getCrossoverPoint
 				.onFirstCall().returns(3)
 				.onSecondCall().returns(7);
 
 			let result = utils.getCrossoverRange(length);
 
-			expect(_.random).to.be.calledTwice;
-			expect(_.random).to.always.be.calledOn(_);
-			expect(_.random).to.always.be.calledWithExactly(0, length);
+			expect(utils.getCrossoverPoint).to.be.calledTwice;
+			expect(utils.getCrossoverPoint).to.always.be.calledOn(utils);
+			expect(utils.getCrossoverPoint).to.always.be.calledWith(length);
 			expect(result).to.deep.equal([ 3, 7 ]);
 		});
 
 		it('returns smaller of two results first', function() {
-			_.random
+			utils.getCrossoverPoint
 				.onFirstCall().returns(7)
 				.onSecondCall().returns(3);
 
