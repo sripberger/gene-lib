@@ -39,8 +39,8 @@ describe('TournamentSelector', function() {
 			_.sampleSize.restore();
 		});
 
-		it('returns a random subset of settings.sampleSize', function() {
-			selector.settings.sampleSize = 1;
+		it('returns a random subset of settings.tournamentSize', function() {
+			selector.settings.tournamentSize = 1;
 
 			let result = selector.getTournament();
 
@@ -48,7 +48,7 @@ describe('TournamentSelector', function() {
 			expect(_.sampleSize).to.be.calledOn(_);
 			expect(_.sampleSize).to.be.calledWith(
 				selector.individuals,
-				selector.settings.sampleSize
+				selector.settings.tournamentSize
 			);
 			expect(result).to.equal(sample);
 		});
