@@ -86,6 +86,31 @@ describe('TournamentSelector', function() {
 		});
 	});
 
+	describe('#getSortedTournament', function() {
+		it('returns result of #getTournament sorted by fitness descending', function() {
+			let selector = new TournamentSelector();
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
+			sinon.stub(foo, 'getFitnessScore').returns(8);
+			sinon.stub(bar, 'getFitnessScore').returns(10);
+			sinon.stub(baz, 'getFitnessScore').returns(9);
+			sinon.stub(selector, 'getTournament').returns([ foo, bar, baz ]);
+
+			let result = selector.getSortedTournament();
+
+			expect(selector.getTournament).to.be.calledOnce;
+			expect(selector.getTournament).to.be.calledOn(selector);
+			expect(foo.getFitnessScore).to.be.called;
+			expect(foo.getFitnessScore).to.always.be.calledOn(foo);
+			expect(bar.getFitnessScore).to.be.called;
+			expect(bar.getFitnessScore).to.always.be.calledOn(bar);
+			expect(baz.getFitnessScore).to.be.called;
+			expect(baz.getFitnessScore).to.always.be.calledOn(baz);
+			expect(result).to.deep.equal([ bar, baz, foo ]);
+		});
+	});
+
 	describe('#select', function() {
 		let selector;
 
