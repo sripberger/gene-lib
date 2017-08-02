@@ -20,6 +20,29 @@ describe('TournamentSelector', function() {
 		expect(selector.settings).to.equal(settings);
 	});
 
+	describe('::getWeights', function() {
+		it('returns selection weights for a tournament', function() {
+			expect(TournamentSelector.getWeights(0.75, 1)).to.deep.equal([
+				1
+			]);
+			expect(TournamentSelector.getWeights(0.75, 2)).to.deep.equal([
+				0.75,
+				0.25
+			]);
+			expect(TournamentSelector.getWeights(0.75, 3)).to.deep.equal([
+				0.75,
+				0.1875,
+				0.0625
+			]);
+			expect(TournamentSelector.getWeights(0.75, 4)).to.deep.equal([
+				0.75,
+				0.1875,
+				0.046875,
+				0.015625
+			]);
+		});
+	});
+
 	describe('#getTournament', function() {
 		let selector, sample;
 
