@@ -121,6 +121,43 @@ describe('TournamentSelector', function() {
 		});
 	});
 
+	describe('#selectDeterministic', function() {
+		let selector;
+
+		beforeEach(function() {
+			selector = new TournamentSelector();
+			sinon.stub(selector, 'getTournament');
+		});
+
+		it('returns highest-scoring individual from tournament', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
+			sinon.stub(foo, 'getFitnessScore').returns(8);
+			sinon.stub(bar, 'getFitnessScore').returns(10);
+			sinon.stub(baz, 'getFitnessScore').returns(9);
+			selector.getTournament.returns([ foo, bar, baz ]);
+
+			let result = selector.selectDeterministic();
+
+			expect(selector.getTournament).to.be.calledOnce;
+			expect(selector.getTournament).to.be.calledOn(selector);
+			expect(foo.getFitnessScore).to.be.called;
+			expect(foo.getFitnessScore).to.always.be.calledOn(foo);
+			expect(bar.getFitnessScore).to.be.called;
+			expect(bar.getFitnessScore).to.always.be.calledOn(bar);
+			expect(baz.getFitnessScore).to.be.called;
+			expect(baz.getFitnessScore).to.always.be.calledOn(baz);
+			expect(result).to.equal(bar);
+		});
+
+		it('returns null if selector is empty', function() {
+			selector.getTournament.returns([]);
+
+			expect(selector.selectDeterministic()).to.be.null;
+		});
+	});
+
 	describe('#selectWeighted', function() {
 		let selector, foo, bar, baz;
 
@@ -186,39 +223,49 @@ describe('TournamentSelector', function() {
 	});
 
 	describe('#select', function() {
-		let selector;
+		let selector, foo, bar;
 
 		beforeEach(function() {
 			selector = new TournamentSelector();
-			sinon.stub(selector, 'getTournament');
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
+
+			sinon.stub(selector, 'selectDeterministic').returns(foo);
+			sinon.stub(selector, 'selectWeighted').returns(bar);
 		});
 
-		it('returns highest-scoring individual from tournament', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
-			sinon.stub(foo, 'getFitnessScore').returns(8);
-			sinon.stub(bar, 'getFitnessScore').returns(10);
-			sinon.stub(baz, 'getFitnessScore').returns(9);
-			selector.getTournament.returns([ foo, bar, baz ]);
+		context('baseWeight not set', function() {
+			it('returns result of #selectDeterministic', function() {
+				let result = selector.select();
 
-			let result = selector.select();
-
-			expect(selector.getTournament).to.be.calledOnce;
-			expect(selector.getTournament).to.be.calledOn(selector);
-			expect(foo.getFitnessScore).to.be.called;
-			expect(foo.getFitnessScore).to.always.be.calledOn(foo);
-			expect(bar.getFitnessScore).to.be.called;
-			expect(bar.getFitnessScore).to.always.be.calledOn(bar);
-			expect(baz.getFitnessScore).to.be.called;
-			expect(baz.getFitnessScore).to.always.be.calledOn(baz);
-			expect(result).to.equal(bar);
+				expect(selector.selectDeterministic).to.be.calledOnce;
+				expect(selector.selectDeterministic).to.be.calledOn(selector);
+				expect(result).to.equal(foo);
+			});
 		});
 
-		it('returns null if selector is empty', function() {
-			selector.getTournament.returns([]);
+		context('baseWeight is 1', function() {
+			it('returns result of #selectDeterministic', function() {
+				selector.settings.baseWeight = 1;
 
-			expect(selector.select()).to.be.null;
+				let result = selector.select();
+
+				expect(selector.selectDeterministic).to.be.calledOnce;
+				expect(selector.selectDeterministic).to.be.calledOn(selector);
+				expect(result).to.equal(foo);
+			});
+		});
+
+		context('baseWeight is not 1', function() {
+			it('returns result of #selectWeighted', function() {
+				selector.settings.baseWeight = 0.75;
+
+				let result = selector.select();
+
+				expect(selector.selectWeighted).to.be.calledOnce;
+				expect(selector.selectWeighted).to.be.calledOn(selector);
+				expect(result).to.equal(bar);
+			});
 		});
 	});
 });
