@@ -5,6 +5,16 @@ const _ = require('lodash');
 const TestIndividual = require('../lib/test-individual');
 
 describe('TournamentSelector', function() {
+	let sandbox;
+
+	beforeEach(function() {
+		sandbox = sinon.sandbox.create();
+	});
+
+	afterEach(function() {
+		sandbox.restore();
+	});
+
 	it('extends ArraySelector', function() {
 		let selector = new TournamentSelector();
 
@@ -108,6 +118,70 @@ describe('TournamentSelector', function() {
 			expect(baz.getFitnessScore).to.be.called;
 			expect(baz.getFitnessScore).to.always.be.calledOn(baz);
 			expect(result).to.deep.equal([ bar, baz, foo ]);
+		});
+	});
+
+	describe('#selectWeighted', function() {
+		let selector, foo, bar, baz;
+
+		beforeEach(function() {
+			selector = new TournamentSelector();
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
+			baz = new TestIndividual('baz');
+			sinon.stub(selector, 'getSortedTournament').returns([
+				foo,
+				bar,
+				baz
+			]);
+			sandbox.stub(TournamentSelector, 'getWeights').returns([
+				0.5,
+				0.3,
+				0.2
+			]);
+			sandbox.stub(Math, 'random');
+		});
+
+		it('gets a sorted tournament, weights, and a random float in [0,1)', function() {
+			selector.settings.baseWeight = 0.5;
+
+			selector.selectWeighted();
+
+			expect(selector.getSortedTournament).to.be.calledOnce;
+			expect(selector.getSortedTournament).to.be.calledOn(selector);
+			expect(TournamentSelector.getWeights).to.be.calledOnce;
+			expect(TournamentSelector.getWeights).to.be.calledOn(TournamentSelector);
+			expect(TournamentSelector.getWeights).to.be.calledWith(0.5, 3);
+			expect(Math.random).to.be.calledOnce;
+			expect(Math.random).to.be.calledOn(Math);
+		});
+
+		it('uses default baseWeight of 1', function() {
+			selector.selectWeighted();
+
+			expect(TournamentSelector.getWeights).to.be.calledOnce;
+			expect(TournamentSelector.getWeights).to.be.calledOn(TournamentSelector);
+			expect(TournamentSelector.getWeights).to.be.calledWith(1, 3);
+		});
+
+		it('returns individual based on weights and random', function() {
+			Math.random
+				.onCall(0).returns(0.49)
+				.onCall(1).returns(0.5)
+				.onCall(2).returns(0.79)
+				.onCall(3).returns(0.8);
+
+			expect(selector.selectWeighted()).to.equal(foo);
+			expect(selector.selectWeighted()).to.equal(bar);
+			expect(selector.selectWeighted()).to.equal(bar);
+			expect(selector.selectWeighted()).to.equal(baz);
+		});
+
+		it('returns null if selector is empty', function() {
+			selector.getSortedTournament.returns([]);
+			TournamentSelector.getWeights.returns([]);
+
+			expect(selector.selectWeighted()).to.be.null;
 		});
 	});
 
