@@ -1,8 +1,8 @@
-const { Individual, getCrossoverIndices } = require('../../lib');
+const { Chromosome, getCrossoverIndices } = require('../../lib');
 const _ = require('lodash');
 const alphabet = 'abcdefghijklmnopqrstuvwxyz !,';
 
-class Phrase extends Individual {
+class Phrase extends Chromosome {
 	constructor(str, target) {
 		super();
 		this.str = str;

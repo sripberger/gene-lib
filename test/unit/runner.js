@@ -1,7 +1,7 @@
 const Runner = require('../../lib/runner');
 const sinon = require('sinon');
 const Generation = require('../../lib/generation');
-const TestIndividual = require('../lib/test-individual');
+const TestChromosome = require('../lib/test-chromosome');
 
 describe('Runner', function() {
 	let sandbox;
@@ -41,7 +41,7 @@ describe('Runner', function() {
 				generationSettings: { foo: 'bar' },
 				selectorClass: function TestSelector() {},
 				selectorSettings: { baz: 'qux' },
-				createIndividual: () => {},
+				createChromosome: () => {},
 				createArg: 'create argument'
 			};
 			let generation = new Generation();
@@ -61,7 +61,7 @@ describe('Runner', function() {
 			expect(generation.populate).to.be.calledOn(generation);
 			expect(generation.populate).to.be.calledWith(
 				generationSize,
-				settings.createIndividual,
+				settings.createChromosome,
 				settings.createArg
 			);
 			expect(result).to.be.an.instanceof(Runner);
@@ -76,12 +76,12 @@ describe('Runner', function() {
 		beforeEach(function() {
 			generation = new Generation();
 			runner = new Runner(generation);
-			best = new TestIndividual('best');
+			best = new TestChromosome('best');
 			sinon.stub(generation, 'getBest').returns(best);
 			sinon.stub(best, 'isSolution').returns(false);
 		});
 
-		it('checks if the best individual is a solution', function() {
+		it('checks if the best chromosome is a solution', function() {
 			runner.checkForSolution();
 
 			expect(generation.getBest).to.be.calledOnce;
@@ -91,7 +91,7 @@ describe('Runner', function() {
 			expect(runner.solution).to.be.null;
 		});
 
-		it('sets solution property if best individual is a solution', function() {
+		it('sets solution property if best chromosome is a solution', function() {
 			best.isSolution.returns(true);
 
 			runner.checkForSolution();
@@ -129,8 +129,8 @@ describe('Runner', function() {
 			generation = new Generation();
 			runner = new Runner(generation);
 			oldGeneration = runner.oldGeneration = new Generation();
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
 
 			sinon.stub(oldGeneration, 'getOffspring').returns([ foo, bar ]);
 			sinon.stub(generation, 'add');
@@ -207,7 +207,7 @@ describe('Runner', function() {
 			runner.runStep.callsFake(() => {
 				size += 1;
 				if (size == 2) {
-					runner.solution = new TestIndividual('solution');
+					runner.solution = new TestChromosome('solution');
 				} else if (size >= 10) {
 					throw new Error('Too many runStep calls');
 				}
@@ -245,7 +245,7 @@ describe('Runner', function() {
 			sinon.stub(runner, 'runGeneration').callsFake(() => {
 				runner.generationCount += 1;
 				if (runner.generationCount === 3) {
-					runner.solution = new TestIndividual('solution');
+					runner.solution = new TestChromosome('solution');
 				}
 			});
 		});
@@ -262,7 +262,7 @@ describe('Runner', function() {
 
 		it('runs no generations if solution is already found', function() {
 			runner.checkForSolution.callsFake(() => {
-				runner.solution = new TestIndividual('solution');
+				runner.solution = new TestChromosome('solution');
 			});
 
 			runner.run();
@@ -294,17 +294,17 @@ describe('Runner', function() {
 		beforeEach(function() {
 			generation = new Generation();
 			runner = new Runner(generation);
-			best = new TestIndividual('best');
+			best = new TestChromosome('best');
 			sinon.stub(generation, 'getBest').returns(best);
 		});
 
 		it('returns solution property if set', function() {
-			let solution = runner.solution = new TestIndividual('solution');
+			let solution = runner.solution = new TestChromosome('solution');
 
 			expect(runner.getBest()).to.equal(solution);
 		});
 
-		it('returns best individual otherwise', function() {
+		it('returns best chromosome otherwise', function() {
 			let result = runner.getBest();
 
 			expect(generation.getBest).to.be.calledOnce;

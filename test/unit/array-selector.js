@@ -1,6 +1,6 @@
 const ArraySelector = require('../../lib/array-selector');
 const Selector = require('../../lib/selector');
-const TestIndividual = require('../lib/test-individual');
+const TestChromosome = require('../lib/test-chromosome');
 const sinon = require('sinon');
 
 describe('ArraySelector', function() {
@@ -19,32 +19,32 @@ describe('ArraySelector', function() {
 		expect(selector.settings).to.equal(settings);
 	});
 
-	it('creates empty individuals array', function() {
+	it('creates empty chromosomes array', function() {
 		let selector = new ArraySelector();
 
-		expect(selector.individuals).to.deep.equal([]);
+		expect(selector.chromosomes).to.deep.equal([]);
 	});
 
 	describe('#add', function() {
-		it('pushes provided individual onto individuals array', function() {
+		it('pushes provided chromosome onto chromosomes array', function() {
 			let selector = new ArraySelector();
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			selector.individuals = [ foo ];
+			let foo = new TestChromosome('foo');
+			let bar = new TestChromosome('bar');
+			selector.chromosomes = [ foo ];
 
 			selector.add(bar);
 
-			expect(selector.individuals).to.deep.equal([ foo, bar ]);
+			expect(selector.chromosomes).to.deep.equal([ foo, bar ]);
 		});
 	});
 
 	describe('#getSize', function() {
-		it('returns length of individuals array', function() {
+		it('returns length of chromosomes array', function() {
 			let selector = new ArraySelector();
-			selector.individuals = [
-				new TestIndividual('foo'),
-				new TestIndividual('bar'),
-				new TestIndividual('baz')
+			selector.chromosomes = [
+				new TestChromosome('foo'),
+				new TestChromosome('bar'),
+				new TestChromosome('baz')
 			];
 
 			expect(selector.getSize()).to.equal(3);
@@ -58,14 +58,14 @@ describe('ArraySelector', function() {
 			selector = new ArraySelector();
 		});
 
-		it('returns highest-scoring individual', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
+		it('returns highest-scoring chromosome', function() {
+			let foo = new TestChromosome('foo');
+			let bar = new TestChromosome('bar');
+			let baz = new TestChromosome('baz');
 			sinon.stub(foo, 'getFitnessScore').returns(8);
 			sinon.stub(bar, 'getFitnessScore').returns(10);
 			sinon.stub(baz, 'getFitnessScore').returns(9);
-			selector.individuals = [ foo, bar, baz ];
+			selector.chromosomes = [ foo, bar, baz ];
 
 			let result = selector.getBest();
 
@@ -78,7 +78,7 @@ describe('ArraySelector', function() {
 			expect(result).to.equal(bar);
 		});
 
-		it('returns null if individuals array is empty', function() {
+		it('returns null if chromosomes array is empty', function() {
 			expect(selector.getBest()).to.be.null;
 		});
 	});

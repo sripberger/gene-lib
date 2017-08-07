@@ -2,7 +2,7 @@ const Generation = require('../../lib/generation');
 const sinon = require('sinon');
 const Selector = require('../../lib/selector');
 const utils = require('../../lib/utils');
-const TestIndividual = require('../lib/test-individual');
+const TestChromosome = require('../lib/test-chromosome');
 
 describe('Generation', function() {
 	let sandbox;
@@ -61,12 +61,12 @@ describe('Generation', function() {
 		beforeEach(function() {
 			selector = new Selector();
 			generation = new Generation(selector);
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
 			sinon.stub(selector, 'add');
 		});
 
-		it('adds individual to selector', function() {
+		it('adds chromosome to selector', function() {
 			generation.add(foo);
 
 			expect(selector.add).to.be.calledOnce;
@@ -105,9 +105,9 @@ describe('Generation', function() {
 			let generation = new Generation();
 			let factory = sinon.stub();
 			let factoryArg = 'factory argument';
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
+			let foo = new TestChromosome('foo');
+			let bar = new TestChromosome('bar');
+			let baz = new TestChromosome('baz');
 			sinon.stub(generation, 'getSize').callsFake(() => size);
 			sinon.stub(generation, 'add').callsFake(() => size += 1);
 			factory
@@ -130,10 +130,10 @@ describe('Generation', function() {
 	});
 
 	describe('#getBest', function() {
-		it('returns best individual from selector', function() {
+		it('returns best chromosome from selector', function() {
 			let selector = new Selector();
 			let generation = new Generation(selector);
-			let best = new TestIndividual('best');
+			let best = new TestChromosome('best');
 			sinon.stub(selector, 'getBest').returns(best);
 
 			let result = generation.getBest();
@@ -151,10 +151,10 @@ describe('Generation', function() {
 			selector = new Selector();
 			settings = { crossoverRate: 0.5 };
 			generation = new Generation(selector, settings);
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
-			fooBar = new TestIndividual('foo-bar');
-			barFoo = new TestIndividual('bar-foo');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
+			fooBar = new TestChromosome('foo-bar');
+			barFoo = new TestChromosome('bar-foo');
 
 			sandbox.stub(selector, 'select')
 				.onFirstCall().returns(foo)
@@ -256,10 +256,10 @@ describe('Generation', function() {
 		beforeEach(function() {
 			settings = { mutationRate: 0.1 };
 			generation = new Generation(new Selector(), settings);
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
-			fooPrime = new TestIndividual('foo-prime');
-			barPrime = new TestIndividual('bar-prime');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
+			fooPrime = new TestChromosome('foo-prime');
+			barPrime = new TestChromosome('bar-prime');
 
 			sandbox.stub(generation, 'getUnmutatedOffspring')
 				.returns([ foo, bar ]);

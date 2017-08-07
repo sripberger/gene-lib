@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const Selector = require('../../lib/selector');
 const TournamentSelector = require('../../lib/tournament-selector');
 const Runner = require('../../lib/runner');
-const TestIndividual = require('../lib/test-individual');
+const TestChromosome = require('../lib/test-chromosome');
 
 describe('runUtils', function() {
 	let sandbox;
@@ -26,16 +26,16 @@ describe('runUtils', function() {
 				mutationRate: 0.1,
 				selectorClass: Selector,
 				selectorSettings: { foo: 'bar' },
-				createIndividual: () => {},
+				createChromosome: () => {},
 				createArg: 'create argument'
 			};
 
 			expect(utils.normalizeSettings(settings)).to.deep.equal(settings);
 		});
 
-		it('supports individualClass in place of createIndividual', function() {
-			let settings = { individualClass: TestIndividual };
-			let { create } = TestIndividual;
+		it('supports chromosomeClass in place of createChromosome', function() {
+			let settings = { chromosomeClass: TestChromosome };
+			let { create } = TestChromosome;
 			let boundCreate = () => {};
 			sandbox.stub(create, 'bind').returns(boundCreate);
 
@@ -43,8 +43,8 @@ describe('runUtils', function() {
 
 			expect(create.bind).to.be.calledOnce;
 			expect(create.bind).to.be.calledOn(create);
-			expect(create.bind).to.be.calledWithExactly(TestIndividual);
-			expect(result.createIndividual).to.equal(boundCreate);
+			expect(create.bind).to.be.calledWithExactly(TestChromosome);
+			expect(result.createChromosome).to.equal(boundCreate);
 		});
 
 		it('applies defaults for other settings', function() {
@@ -70,7 +70,7 @@ describe('runUtils', function() {
 				mutationRate: 0.1,
 				selectorClass: Selector,
 				selectorSettings: { foo: 'bar' },
-				createIndividual: () => {},
+				createChromosome: () => {},
 				createArg: 'create argument'
 			};
 
@@ -86,7 +86,7 @@ describe('runUtils', function() {
 				},
 				selectorClass: settings.selectorClass,
 				selectorSettings: settings.selectorSettings,
-				createIndividual: settings.createIndividual,
+				createChromosome: settings.createChromosome,
 				createArg: settings.createArg
 			});
 		});
@@ -117,7 +117,7 @@ describe('runUtils', function() {
 			let settings = { foo: 'bar' };
 			let transformedSettings = { baz: 'qux' };
 			let runner = new Runner();
-			let best = new TestIndividual('best');
+			let best = new TestChromosome('best');
 			sandbox.stub(utils, 'transformSettings').returns(transformedSettings);
 			sandbox.stub(Runner, 'create').returns(runner);
 			sandbox.stub(runner, 'run');

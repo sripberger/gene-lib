@@ -2,7 +2,7 @@ const TournamentSelector = require('../../lib/tournament-selector');
 const ArraySelector = require('../../lib/array-selector');
 const sinon = require('sinon');
 const _ = require('lodash');
-const TestIndividual = require('../lib/test-individual');
+const TestChromosome = require('../lib/test-chromosome');
 
 describe('TournamentSelector', function() {
 	let sandbox;
@@ -57,9 +57,9 @@ describe('TournamentSelector', function() {
 		let selector, sample;
 
 		beforeEach(function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
+			let foo = new TestChromosome('foo');
+			let bar = new TestChromosome('bar');
+			let baz = new TestChromosome('baz');
 
 			selector = new TournamentSelector();
 			sample = [ foo, bar ];
@@ -80,7 +80,7 @@ describe('TournamentSelector', function() {
 			expect(_.sampleSize).to.be.calledOnce;
 			expect(_.sampleSize).to.be.calledOn(_);
 			expect(_.sampleSize).to.be.calledWith(
-				selector.individuals,
+				selector.chromosomes,
 				selector.settings.tournamentSize
 			);
 			expect(result).to.equal(sample);
@@ -91,7 +91,7 @@ describe('TournamentSelector', function() {
 
 			expect(_.sampleSize).to.be.calledOnce;
 			expect(_.sampleSize).to.be.calledOn(_);
-			expect(_.sampleSize).to.be.calledWith(selector.individuals, 2);
+			expect(_.sampleSize).to.be.calledWith(selector.chromosomes, 2);
 			expect(result).to.equal(sample);
 		});
 	});
@@ -99,9 +99,9 @@ describe('TournamentSelector', function() {
 	describe('#getSortedTournament', function() {
 		it('returns result of #getTournament sorted by fitness descending', function() {
 			let selector = new TournamentSelector();
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
+			let foo = new TestChromosome('foo');
+			let bar = new TestChromosome('bar');
+			let baz = new TestChromosome('baz');
 			sinon.stub(foo, 'getFitnessScore').returns(8);
 			sinon.stub(bar, 'getFitnessScore').returns(10);
 			sinon.stub(baz, 'getFitnessScore').returns(9);
@@ -129,10 +129,10 @@ describe('TournamentSelector', function() {
 			sinon.stub(selector, 'getTournament');
 		});
 
-		it('returns highest-scoring individual from tournament', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
+		it('returns highest-scoring chromosome from tournament', function() {
+			let foo = new TestChromosome('foo');
+			let bar = new TestChromosome('bar');
+			let baz = new TestChromosome('baz');
 			sinon.stub(foo, 'getFitnessScore').returns(8);
 			sinon.stub(bar, 'getFitnessScore').returns(10);
 			sinon.stub(baz, 'getFitnessScore').returns(9);
@@ -163,9 +163,9 @@ describe('TournamentSelector', function() {
 
 		beforeEach(function() {
 			selector = new TournamentSelector();
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
-			baz = new TestIndividual('baz');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
+			baz = new TestChromosome('baz');
 			sinon.stub(selector, 'getSortedTournament').returns([
 				foo,
 				bar,
@@ -201,7 +201,7 @@ describe('TournamentSelector', function() {
 			expect(TournamentSelector.getWeights).to.be.calledWith(1, 3);
 		});
 
-		it('returns individual based on weights and random', function() {
+		it('returns chromosome based on weights and random', function() {
 			Math.random
 				.onCall(0).returns(0.49)
 				.onCall(1).returns(0.5)
@@ -227,8 +227,8 @@ describe('TournamentSelector', function() {
 
 		beforeEach(function() {
 			selector = new TournamentSelector();
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
 
 			sinon.stub(selector, 'selectDeterministic').returns(foo);
 			sinon.stub(selector, 'selectWeighted').returns(bar);

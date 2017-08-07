@@ -11,7 +11,7 @@ describe('Phrase Solver', function() {
 			generationLimit: 1000,
 			crossoverRate: 0.2,
 			mutationRate: 0.05,
-			individualClass: Phrase,
+			chromosomeClass: Phrase,
 			createArg: target,
 			selectorClass: TournamentSelector
 		});
@@ -25,7 +25,7 @@ describe('Phrase Solver', function() {
 			generationLimit: 1000,
 			crossoverRate: 0.2,
 			mutationRate: 0.05,
-			individualClass: Phrase,
+			chromosomeClass: Phrase,
 			createArg: target,
 			selectorClass: TournamentSelector,
 			selectorSettings: {
@@ -43,7 +43,7 @@ describe('Phrase Solver', function() {
 			generationLimit: 1000,
 			crossoverRate: 0.2,
 			mutationRate: 0.05,
-			individualClass: Phrase,
+			chromosomeClass: Phrase,
 			createArg: target,
 			selectorClass: RouletteSelector
 		});

@@ -1,7 +1,7 @@
 const RouletteSelector = require('../../lib/roulette-selector');
 const ArraySelector = require('../../lib/array-selector');
 const sinon = require('sinon');
-const TestIndividual = require('../lib/test-individual');
+const TestChromosome = require('../lib/test-chromosome');
 
 describe('RouletteSelector', function() {
 	let sandbox;
@@ -38,7 +38,7 @@ describe('RouletteSelector', function() {
 	describe('#add', function() {
 		it('adds fitness to fitiness total', function() {
 			let selector = new RouletteSelector();
-			let foo = new TestIndividual('foo');
+			let foo = new TestChromosome('foo');
 			selector.fitnessTotal = 2;
 			sinon.stub(foo, 'getFitnessScore').returns(3);
 			sandbox.spy(ArraySelector.prototype, 'add');
@@ -73,11 +73,11 @@ describe('RouletteSelector', function() {
 
 		beforeEach(function() {
 			selector = new RouletteSelector();
-			foo = new TestIndividual('foo');
-			bar = new TestIndividual('bar');
-			baz = new TestIndividual('baz');
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
+			baz = new TestChromosome('baz');
 
-			selector.individuals = [ foo, bar, baz ];
+			selector.chromosomes = [ foo, bar, baz ];
 
 			sinon.stub(selector, 'spin').returns(12);
 			sinon.stub(foo, 'getFitnessScore').returns(3);
@@ -85,7 +85,7 @@ describe('RouletteSelector', function() {
 			sinon.stub(baz, 'getFitnessScore').returns(5);
 		});
 
-		it('calls #spin and gets individual fitness scores', function() {
+		it('calls #spin and gets chromosome fitness scores', function() {
 			selector.select();
 
 			expect(selector.spin).to.be.calledOnce;
@@ -98,7 +98,7 @@ describe('RouletteSelector', function() {
 			expect(baz.getFitnessScore).to.be.calledOn(baz);
 		});
 
-		it('returns individual based on spin result', function() {
+		it('returns chromosome based on spin result', function() {
 			selector.spin
 				.onCall(0).returns(2.9)
 				.onCall(1).returns(3)
@@ -112,7 +112,7 @@ describe('RouletteSelector', function() {
 		});
 
 		it('returns null if selector is empty', function() {
-			selector.individuals = [];
+			selector.chromosomes = [];
 
 			expect(selector.select()).to.be.null;
 		});
