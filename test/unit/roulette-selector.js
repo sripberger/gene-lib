@@ -40,7 +40,7 @@ describe('RouletteSelector', function() {
 			let selector = new RouletteSelector();
 			let foo = new TestChromosome('foo');
 			selector.fitnessTotal = 2;
-			sinon.stub(foo, 'getFitnessScore').returns(3);
+			sinon.stub(foo, 'getFitness').returns(3);
 			sandbox.spy(ArraySelector.prototype, 'add');
 
 			selector.add(foo);
@@ -48,8 +48,8 @@ describe('RouletteSelector', function() {
 			expect(ArraySelector.prototype.add).to.be.calledOnce;
 			expect(ArraySelector.prototype.add).to.be.calledOn(selector);
 			expect(ArraySelector.prototype.add).to.be.calledWith(foo);
-			expect(foo.getFitnessScore).to.be.calledOnce;
-			expect(foo.getFitnessScore).to.be.calledOn(foo);
+			expect(foo.getFitness).to.be.calledOnce;
+			expect(foo.getFitness).to.be.calledOn(foo);
 			expect(selector.fitnessTotal).to.equal(5);
 		});
 	});
@@ -80,22 +80,22 @@ describe('RouletteSelector', function() {
 			selector.chromosomes = [ foo, bar, baz ];
 
 			sinon.stub(selector, 'spin').returns(12);
-			sinon.stub(foo, 'getFitnessScore').returns(3);
-			sinon.stub(bar, 'getFitnessScore').returns(4);
-			sinon.stub(baz, 'getFitnessScore').returns(5);
+			sinon.stub(foo, 'getFitness').returns(3);
+			sinon.stub(bar, 'getFitness').returns(4);
+			sinon.stub(baz, 'getFitness').returns(5);
 		});
 
-		it('calls #spin and gets chromosome fitness scores', function() {
+		it('calls #spin and gets chromosome fitnesses', function() {
 			selector.select();
 
 			expect(selector.spin).to.be.calledOnce;
 			expect(selector.spin).to.be.calledOn(selector);
-			expect(foo.getFitnessScore).to.be.calledOnce;
-			expect(foo.getFitnessScore).to.be.calledOn(foo);
-			expect(bar.getFitnessScore).to.be.calledOnce;
-			expect(bar.getFitnessScore).to.be.calledOn(bar);
-			expect(baz.getFitnessScore).to.be.calledOnce;
-			expect(baz.getFitnessScore).to.be.calledOn(baz);
+			expect(foo.getFitness).to.be.calledOnce;
+			expect(foo.getFitness).to.be.calledOn(foo);
+			expect(bar.getFitness).to.be.calledOnce;
+			expect(bar.getFitness).to.be.calledOn(bar);
+			expect(baz.getFitness).to.be.calledOnce;
+			expect(baz.getFitness).to.be.calledOn(baz);
 		});
 
 		it('returns chromosome based on spin result', function() {

@@ -17,7 +17,7 @@ class Phrase extends Chromosome {
 		return new Phrase(chars.join(''), target);
 	}
 
-	calculateFitnessScore() {
+	calculateFitness() {
 		let diff = 0;
 		for (let i = 0; i < this.str.length; i += 1) {
 			let charIndex = alphabet.indexOf(this.str.charAt(i));

@@ -62,19 +62,19 @@ describe('ArraySelector', function() {
 			let foo = new TestChromosome('foo');
 			let bar = new TestChromosome('bar');
 			let baz = new TestChromosome('baz');
-			sinon.stub(foo, 'getFitnessScore').returns(8);
-			sinon.stub(bar, 'getFitnessScore').returns(10);
-			sinon.stub(baz, 'getFitnessScore').returns(9);
+			sinon.stub(foo, 'getFitness').returns(8);
+			sinon.stub(bar, 'getFitness').returns(10);
+			sinon.stub(baz, 'getFitness').returns(9);
 			selector.chromosomes = [ foo, bar, baz ];
 
 			let result = selector.getBest();
 
-			expect(foo.getFitnessScore).to.be.called;
-			expect(foo.getFitnessScore).to.always.be.calledOn(foo);
-			expect(bar.getFitnessScore).to.be.called;
-			expect(bar.getFitnessScore).to.always.be.calledOn(bar);
-			expect(baz.getFitnessScore).to.be.called;
-			expect(baz.getFitnessScore).to.always.be.calledOn(baz);
+			expect(foo.getFitness).to.be.called;
+			expect(foo.getFitness).to.always.be.calledOn(foo);
+			expect(bar.getFitness).to.be.called;
+			expect(bar.getFitness).to.always.be.calledOn(bar);
+			expect(baz.getFitness).to.be.called;
+			expect(baz.getFitness).to.always.be.calledOn(baz);
 			expect(result).to.equal(bar);
 		});
 

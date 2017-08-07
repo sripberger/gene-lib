@@ -13,51 +13,51 @@ describe('Chromosome', function() {
 		});
 	});
 
-	describe('#calculateFitnessScore', function() {
+	describe('#calculateFitness', function() {
 		it('throws unsupported operation error', function() {
 			let chromosome = new Chromosome();
 
-			expect(() => chromosome.calculateFitnessScore())
+			expect(() => chromosome.calculateFitness())
 				.to.throw(XError)
 				.with.property('code')
 				.that.equals(XError.UNSUPPORTED_OPERATION);
 		});
 	});
 
-	describe('#getFitnessScore', function() {
+	describe('#getFitness', function() {
 		let chromosome;
 
 		beforeEach(function() {
 			chromosome = new Chromosome();
-			sinon.stub(chromosome, 'calculateFitnessScore').returns(42);
+			sinon.stub(chromosome, 'calculateFitness').returns(42);
 		});
 
-		it('returns result of #calculateFitnessScore', function() {
-			let result = chromosome.getFitnessScore();
+		it('returns result of #calculateFitness', function() {
+			let result = chromosome.getFitness();
 
-			expect(chromosome.calculateFitnessScore).to.be.calledOnce;
-			expect(chromosome.calculateFitnessScore).to.be.calledOn(chromosome);
+			expect(chromosome.calculateFitness).to.be.calledOnce;
+			expect(chromosome.calculateFitness).to.be.calledOn(chromosome);
 			expect(result).to.equal(42);
 		});
 
 		it('caches nonzero result', function() {
-			chromosome.getFitnessScore();
-			chromosome.calculateFitnessScore.resetHistory();
+			chromosome.getFitness();
+			chromosome.calculateFitness.resetHistory();
 
-			let result = chromosome.getFitnessScore();
+			let result = chromosome.getFitness();
 
-			expect(chromosome.calculateFitnessScore).to.not.be.called;
+			expect(chromosome.calculateFitness).to.not.be.called;
 			expect(result).to.equal(42);
 		});
 
 		it('caches zero result', function() {
-			chromosome.calculateFitnessScore.returns(0);
-			chromosome.getFitnessScore();
-			chromosome.calculateFitnessScore.resetHistory();
+			chromosome.calculateFitness.returns(0);
+			chromosome.getFitness();
+			chromosome.calculateFitness.resetHistory();
 
-			let result = chromosome.getFitnessScore();
+			let result = chromosome.getFitness();
 
-			expect(chromosome.calculateFitnessScore).to.not.be.called;
+			expect(chromosome.calculateFitness).to.not.be.called;
 			expect(result).to.equal(0);
 		});
 	});
@@ -67,26 +67,26 @@ describe('Chromosome', function() {
 
 		beforeEach(function() {
 			chromosome = new Chromosome();
-			sinon.stub(chromosome, 'getFitnessScore');
+			sinon.stub(chromosome, 'getFitness');
 		});
 
-		it('returns true if fitness score is Infinity', function() {
-			chromosome.getFitnessScore.returns(Infinity);
+		it('returns true if fitness is Infinity', function() {
+			chromosome.getFitness.returns(Infinity);
 
 			let result = chromosome.isSolution();
 
-			expect(chromosome.getFitnessScore).to.be.calledOnce;
-			expect(chromosome.getFitnessScore).to.be.calledOn(chromosome);
+			expect(chromosome.getFitness).to.be.calledOnce;
+			expect(chromosome.getFitness).to.be.calledOn(chromosome);
 			expect(result).to.be.true;
 		});
 
 		it('returns false otherwise', function() {
-			chromosome.getFitnessScore.returns(42);
+			chromosome.getFitness.returns(42);
 
 			let result = chromosome.isSolution();
 
-			expect(chromosome.getFitnessScore).to.be.calledOnce;
-			expect(chromosome.getFitnessScore).to.be.calledOn(chromosome);
+			expect(chromosome.getFitness).to.be.calledOnce;
+			expect(chromosome.getFitness).to.be.calledOn(chromosome);
 			expect(result).to.be.false;
 		});
 	});
