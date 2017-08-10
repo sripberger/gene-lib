@@ -86,7 +86,7 @@ describe('utils', function() {
 	});
 
 	describe('::getCrossoverIndices', function() {
-		it('does the thing', function() {
+		it('returns randomly-determined set of crossover indices', function() {
 			let length = 5;
 			sandbox.stub(utils, 'boolChance')
 				.onCall(0).returns(false)
