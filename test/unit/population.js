@@ -178,6 +178,20 @@ describe('Population', function() {
 		});
 	});
 
+	describe('#getBest', function() {
+		it('returns individual with the highest fitness', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
+			let population = new Population([ foo, bar, baz ]);
+			foo.fitness = 8;
+			bar.fitness = 10;
+			baz.fitness = 9;
+
+			expect(population.getBest()).to.equal(bar);
+		});
+	});
+
 	describe('#toSelector', function() {
 		let individuals, population, settings;
 
