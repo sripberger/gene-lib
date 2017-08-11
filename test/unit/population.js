@@ -126,8 +126,8 @@ describe('Population', function() {
 						sinon.match.func
 					);
 
-					// Test failure to ensure we aren't resolving early.
-					pasync.eachLimit.rejects(new Error('Test Error'));
+					// Test rejection to ensure we aren't resolving early.
+					pasync.eachLimit.rejects();
 					return population.setFitnesses(4)
 						.then(() => {
 							throw new Error('Promise should have rejected');
@@ -167,8 +167,8 @@ describe('Population', function() {
 						expect(foo.setFitness).to.be.calledOnce;
 						expect(foo.setFitness).to.be.calledOn(foo);
 
-						// Test failure to ensure we aren't resolving early.
-						foo.setFitness.rejects(new Error('Test Error'));
+						// Test rejection to ensure we aren't resolving early.
+						foo.setFitness.rejects();
 						return iteratee(foo)
 							.then(() => {
 								throw new Error('Promise should have rejected');
@@ -205,8 +205,8 @@ describe('Population', function() {
 					expect(result).to.be.an.instanceof(Selector);
 					expect(result.settings).to.equal(settings);
 
-					// Test failure to ensure we aren't resolving early.
-					pasync.eachLimit.rejects(new Error('Test Error'));
+					// Test rejection to ensure we aren't resolving early.
+					pasync.eachLimit.rejects();
 					return population.toSelector(Selector, settings, 4)
 						.then(() => {
 							throw new Error('Promise should have rejected');
@@ -248,8 +248,8 @@ describe('Population', function() {
 						expect(selector.add).to.be.calledOn(selector);
 						expect(selector.add).to.be.calledWith(foo);
 
-						// Test failure to ensure we aren't resolving early.
-						selector.add.rejects(new Error('Test Error'));
+						// Test rejection to ensure we aren't resolving early.
+						selector.add.rejects();
 						return iteratee(foo)
 							.then(() => {
 								throw new Error('Promise should have rejected');
