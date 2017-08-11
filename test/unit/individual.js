@@ -49,6 +49,35 @@ describe('Individual', function() {
 		});
 	});
 
+	describe('#isSolution', function() {
+		const isSolutionResult = 'is solution?';
+		let chromosome, individual;
+
+		beforeEach(function() {
+			chromosome = new TestChromosome('chromosome');
+			individual = new Individual(chromosome);
+			sinon.stub(chromosome, 'isSolution').resolves(isSolutionResult);
+		});
+
+		it('resolves with result of chromosome#isSolution', function() {
+			return individual.isSolution()
+				.then((result) => {
+					expect(chromosome.isSolution).to.be.calledOnce;
+					expect(chromosome.isSolution).to.be.calledOn(chromosome);
+					expect(result).to.equal(isSolutionResult);
+				});
+		});
+
+		it('supports synchronous chromosome#isSolution', function() {
+			chromosome.isSolution.returns(isSolutionResult);
+
+			return individual.isSolution()
+				.then((result) => {
+					expect(result).to.equal(isSolutionResult);
+				});
+		});
+	});
+
 	describe('#crossover', function() {
 		const rate = '0.2';
 		let foo, bar, baz, fooBar, barFoo, fooIndividual, barIndividual, bazIndividual;
