@@ -21,6 +21,40 @@ describe('Individual', function() {
 		expect(individual.chromosome).to.equal(chromosome);
 	});
 
+	describe('::create', function() {
+		const factoryArg = 'factory argument';
+		let chromosome, chromosomeFactory;
+
+		beforeEach(function() {
+			chromosome = new TestChromosome('chromosome');
+			chromosomeFactory = sinon.stub();
+		});
+
+		it('resolves with individual with chromosome from factory', function() {
+			chromosomeFactory.resolves(chromosome);
+
+			return Individual.create(chromosomeFactory, factoryArg)
+				.then((result) => {
+					expect(chromosomeFactory).to.be.calledOnce;
+					expect(chromosomeFactory).to.be.calledWith(factoryArg);
+					expect(result).to.be.an.instanceof(Individual);
+					expect(result.chromosome).to.equal(chromosome);
+				});
+		});
+
+		it('supports synchronous chromosome factory', function() {
+			chromosomeFactory.returns(chromosome);
+
+			return Individual.create(chromosomeFactory, factoryArg)
+				.then((result) => {
+					expect(chromosomeFactory).to.be.calledOnce;
+					expect(chromosomeFactory).to.be.calledWith(factoryArg);
+					expect(result).to.be.an.instanceof(Individual);
+					expect(result.chromosome).to.equal(chromosome);
+				});
+		});
+	});
+
 	describe('#setFitness', function() {
 		let chromosome, individual;
 
