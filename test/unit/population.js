@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const pasync = require('pasync');
 const Selector = require('../../lib/selector');
 const TestIndividual = require('../lib/test-individual');
+const TestSelector = require('../lib/test-selector');
 
 describe('Population', function() {
 	let sandbox;
@@ -207,7 +208,7 @@ describe('Population', function() {
 		});
 
 		it('resolves with Selector instance after asynchronously iterating individuals', function() {
-			return population.toSelector(Selector, settings, 4)
+			return population.toSelector(TestSelector, settings, 4)
 				.then((result) => {
 					expect(pasync.eachLimit).to.be.calledOnce;
 					expect(pasync.eachLimit).to.be.calledOn(pasync);
@@ -216,7 +217,7 @@ describe('Population', function() {
 						4,
 						sinon.match.func
 					);
-					expect(result).to.be.an.instanceof(Selector);
+					expect(result).to.be.an.instanceof(TestSelector);
 					expect(result.settings).to.equal(settings);
 
 					// Test rejection to ensure we aren't resolving early.
@@ -229,7 +230,7 @@ describe('Population', function() {
 		});
 
 		it('uses default concurrency of 1', function() {
-			return population.toSelector(Selector)
+			return population.toSelector(TestSelector)
 				.then(() => {
 					expect(pasync.eachLimit).to.be.calledOnce;
 					expect(pasync.eachLimit).to.be.calledOn(pasync);
