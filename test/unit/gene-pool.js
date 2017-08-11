@@ -7,6 +7,7 @@ const Population = require('../../lib/population');
 const Selector = require('../../lib/selector');
 const utils = require('../../lib/utils');
 const TestIndividual = require('../lib/test-individual');
+const TestSelector = require('../lib/test-selector');
 
 describe('GenePool', function() {
 	let sandbox;
@@ -115,6 +116,40 @@ describe('GenePool', function() {
 				crossoverCount: 4,
 				copyCount: 16,
 			});
+		});
+	});
+
+	describe('::fromPopulation', function() {
+		it('creates a GenePool from a population based on provided settings', function() {
+			let population = new Population();
+			let settings = {
+				selectorClass: TestSelector,
+				selectorSettings: { foo: 'bar' },
+				addConcurrency: 4,
+				baz: 'qux'
+			};
+			let selector = new TestSelector();
+			let pool = new GenePool();
+			sinon.stub(population, 'toSelector').resolves(selector);
+			sandbox.stub(GenePool, 'create').returns(pool);
+
+			return GenePool.fromPopulation(population, settings)
+				.then((result) => {
+					expect(population.toSelector).to.be.calledOnce;
+					expect(population.toSelector).to.be.calledOn(population);
+					expect(population.toSelector).to.be.calledWith(
+						settings.selectorClass,
+						settings.selectorSettings,
+						settings.addConcurrency
+					);
+					expect(GenePool.create).to.be.calledOnce;
+					expect(GenePool.create).to.be.calledOn(GenePool);
+					expect(GenePool.create).to.be.calledWith(
+						selector,
+						{ baz: 'qux' }
+					);
+					expect(result).to.equal(pool);
+				});
 		});
 	});
 
