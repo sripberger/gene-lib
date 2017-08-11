@@ -35,21 +35,20 @@ describe('Population', function() {
 
 	describe('::create', function() {
 		const size = 2;
+		const chromosomeFactory = () => {};
 		const factoryArg = 'factory argument';
-		let factory, individuals;
+		let individuals;
 
 		beforeEach(function() {
 			let foo = new TestIndividual('foo');
 			let bar = new TestIndividual('bar');
-
-			factory = sinon.stub();
 			individuals = [ foo, bar ];
 
 			sandbox.stub(pasync, 'timesLimit').resolves(individuals);
 		});
 
 		it('creates initial population using pasync::timesLimit', function() {
-			return Population.create(size, factory, factoryArg, 4)
+			return Population.create(size, chromosomeFactory, factoryArg, 4)
 				.then((result) => {
 					expect(pasync.timesLimit).to.be.calledOnce;
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
@@ -64,7 +63,7 @@ describe('Population', function() {
 		});
 
 		it('uses default concurrency of 1', function() {
-			return Population.create(size, factory, factoryArg)
+			return Population.create(size, chromosomeFactory, factoryArg)
 				.then(() => {
 					expect(pasync.timesLimit).to.be.calledOnce;
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
@@ -77,38 +76,28 @@ describe('Population', function() {
 		});
 
 		describe('iteratee', function() {
-			let iteratee, chromosome;
+			let iteratee;
 
 			beforeEach(function() {
-				({ chromosome } = individuals[0]);
-
-				return Population.create(size, factory, factoryArg)
+				return Population.create(size, chromosomeFactory, factoryArg)
 					.then(() => {
 						iteratee = pasync.timesLimit.firstCall.args[2];
 					});
 			});
 
-			it('resolves with individual with chromosome from factory', function() {
-				factory.resolves(chromosome);
+			it('resolves with result of Individual::create', function() {
+				let [ individual ] = individuals;
+				sandbox.stub(Individual, 'create').resolves(individual);
 
 				return iteratee()
 					.then((result) => {
-						expect(factory).to.be.calledOnce;
-						expect(factory).to.be.calledWith(factoryArg);
-						expect(result).to.be.an.instanceof(Individual);
-						expect(result.chromosome).to.equal(chromosome);
-					});
-			});
-
-			it('supports synchronous factory', function() {
-				factory.returns(chromosome);
-
-				return iteratee()
-					.then((result) => {
-						expect(factory).to.be.calledOnce;
-						expect(factory).to.be.calledWith(factoryArg);
-						expect(result).to.be.an.instanceof(Individual);
-						expect(result.chromosome).to.equal(chromosome);
+						expect(Individual.create).to.be.calledOnce;
+						expect(Individual.create).to.be.calledOn(Individual);
+						expect(Individual.create).to.be.calledWith(
+							chromosomeFactory,
+							factoryArg
+						);
+						expect(result).to.equal(individual);
 					});
 			});
 		});
