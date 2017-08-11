@@ -1,7 +1,9 @@
 const Population = require('../../lib/population');
 const sinon = require('sinon');
 const pasync = require('pasync');
+const Individual = require('../../lib/individual');
 const Selector = require('../../lib/selector');
+const TestChromosome = require('../lib/test-chromosome');
 const TestIndividual = require('../lib/test-individual');
 const TestSelector = require('../lib/test-selector');
 
@@ -30,6 +32,53 @@ describe('Population', function() {
 		let population = new Population();
 
 		expect(population.individuals).to.deep.equal([]);
+	});
+
+	describe('::create', function() {
+		const size = 2;
+		const chromosomeFactory = () => {};
+		let foo, bar;
+
+		beforeEach(function() {
+			foo = new TestChromosome('foo');
+			bar = new TestChromosome('bar');
+
+			sandbox.stub(pasync, 'timesLimit').resolves([ foo, bar ]);
+		});
+
+		it('creates initial population using pasync::timesLimit', function() {
+			return Population.create(size, chromosomeFactory, 4)
+				.then((result) => {
+					expect(pasync.timesLimit).to.be.calledOnce;
+					expect(pasync.timesLimit).to.be.calledOn(pasync);
+					expect(pasync.timesLimit).to.be.calledWith(
+						size,
+						4,
+						chromosomeFactory
+					);
+					expect(result).to.be.an.instanceof(Population);
+					expect(result.individuals).to.be.an.instanceof(Array);
+					expect(result.individuals).to.have.length(2);
+					expect(result.individuals[0]).to.be.an.instanceof(Individual);
+					expect(result.individuals[0].chromosome).to.equal(foo);
+					expect(result.individuals[1]).to.be.an.instanceof(Individual);
+					expect(result.individuals[1].chromosome).to.equal(bar);
+
+				});
+		});
+
+		it('uses default concurrency of 1', function() {
+			return Population.create(size, chromosomeFactory)
+				.then(() => {
+					expect(pasync.timesLimit).to.be.calledOnce;
+					expect(pasync.timesLimit).to.be.calledOn(pasync);
+					expect(pasync.timesLimit).to.be.calledWith(
+						size,
+						1,
+						sinon.match.func
+					);
+				});
+		});
 	});
 
 	describe('#mutate', function() {
