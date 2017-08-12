@@ -1,7 +1,6 @@
 const ArraySelector = require('../../lib/array-selector');
 const Selector = require('../../lib/selector');
 const TestChromosome = require('../lib/test-chromosome');
-const sinon = require('sinon');
 
 describe('ArraySelector', function() {
 	it('extends Selector', function() {
@@ -35,51 +34,6 @@ describe('ArraySelector', function() {
 			selector.add(bar);
 
 			expect(selector.chromosomes).to.deep.equal([ foo, bar ]);
-		});
-	});
-
-	describe('#getSize', function() {
-		it('returns length of chromosomes array', function() {
-			let selector = new ArraySelector();
-			selector.chromosomes = [
-				new TestChromosome('foo'),
-				new TestChromosome('bar'),
-				new TestChromosome('baz')
-			];
-
-			expect(selector.getSize()).to.equal(3);
-		});
-	});
-
-	describe('#getBest', function() {
-		let selector;
-
-		beforeEach(function() {
-			selector = new ArraySelector();
-		});
-
-		it('returns highest-scoring chromosome', function() {
-			let foo = new TestChromosome('foo');
-			let bar = new TestChromosome('bar');
-			let baz = new TestChromosome('baz');
-			sinon.stub(foo, 'getFitness').returns(8);
-			sinon.stub(bar, 'getFitness').returns(10);
-			sinon.stub(baz, 'getFitness').returns(9);
-			selector.chromosomes = [ foo, bar, baz ];
-
-			let result = selector.getBest();
-
-			expect(foo.getFitness).to.be.called;
-			expect(foo.getFitness).to.always.be.calledOn(foo);
-			expect(bar.getFitness).to.be.called;
-			expect(bar.getFitness).to.always.be.calledOn(bar);
-			expect(baz.getFitness).to.be.called;
-			expect(baz.getFitness).to.always.be.calledOn(baz);
-			expect(result).to.equal(bar);
-		});
-
-		it('returns null if chromosomes array is empty', function() {
-			expect(selector.getBest()).to.be.null;
 		});
 	});
 });
