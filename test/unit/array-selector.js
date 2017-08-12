@@ -1,6 +1,6 @@
 const ArraySelector = require('../../lib/array-selector');
 const Selector = require('../../lib/selector');
-const TestChromosome = require('../lib/test-chromosome');
+const TestIndividual = require('../lib/test-individual');
 
 describe('ArraySelector', function() {
 	it('extends Selector', function() {
@@ -18,22 +18,22 @@ describe('ArraySelector', function() {
 		expect(selector.settings).to.equal(settings);
 	});
 
-	it('creates empty chromosomes array', function() {
+	it('creates empty individuals array', function() {
 		let selector = new ArraySelector();
 
-		expect(selector.chromosomes).to.deep.equal([]);
+		expect(selector.individuals).to.deep.equal([]);
 	});
 
 	describe('#add', function() {
-		it('pushes provided chromosome onto chromosomes array', function() {
+		it('pushes provided individual onto individuals array', function() {
 			let selector = new ArraySelector();
-			let foo = new TestChromosome('foo');
-			let bar = new TestChromosome('bar');
-			selector.chromosomes = [ foo ];
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			selector.individuals = [ foo ];
 
 			selector.add(bar);
 
-			expect(selector.chromosomes).to.deep.equal([ foo, bar ]);
+			expect(selector.individuals).to.deep.equal([ foo, bar ]);
 		});
 	});
 });

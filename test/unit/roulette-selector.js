@@ -1,7 +1,7 @@
 const RouletteSelector = require('../../lib/roulette-selector');
 const ArraySelector = require('../../lib/array-selector');
 const sinon = require('sinon');
-const TestChromosome = require('../lib/test-chromosome');
+const TestIndividual = require('../lib/test-individual');
 
 describe('RouletteSelector', function() {
 	let sandbox;
@@ -36,11 +36,11 @@ describe('RouletteSelector', function() {
 	});
 
 	describe('#add', function() {
-		it('adds fitness to fitiness total', function() {
+		it('adds individual fitness to fitness total', function() {
 			let selector = new RouletteSelector();
-			let foo = new TestChromosome('foo');
+			let foo = new TestIndividual('foo');
+			foo.fitness = 3;
 			selector.fitnessTotal = 2;
-			sinon.stub(foo, 'getFitness').returns(3);
 			sandbox.spy(ArraySelector.prototype, 'add');
 
 			selector.add(foo);
@@ -48,8 +48,6 @@ describe('RouletteSelector', function() {
 			expect(ArraySelector.prototype.add).to.be.calledOnce;
 			expect(ArraySelector.prototype.add).to.be.calledOn(selector);
 			expect(ArraySelector.prototype.add).to.be.calledWith(foo);
-			expect(foo.getFitness).to.be.calledOnce;
-			expect(foo.getFitness).to.be.calledOn(foo);
 			expect(selector.fitnessTotal).to.equal(5);
 		});
 	});
@@ -73,32 +71,26 @@ describe('RouletteSelector', function() {
 
 		beforeEach(function() {
 			selector = new RouletteSelector();
-			foo = new TestChromosome('foo');
-			bar = new TestChromosome('bar');
-			baz = new TestChromosome('baz');
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
+			baz = new TestIndividual('baz');
 
-			selector.chromosomes = [ foo, bar, baz ];
+			selector.individuals = [ foo, bar, baz ];
+			foo.fitness = 3;
+			bar.fitness = 4;
+			baz.fitness = 5;
 
 			sinon.stub(selector, 'spin').returns(12);
-			sinon.stub(foo, 'getFitness').returns(3);
-			sinon.stub(bar, 'getFitness').returns(4);
-			sinon.stub(baz, 'getFitness').returns(5);
 		});
 
-		it('calls #spin and gets chromosome fitnesses', function() {
+		it('calls #spin', function() {
 			selector.select();
 
 			expect(selector.spin).to.be.calledOnce;
 			expect(selector.spin).to.be.calledOn(selector);
-			expect(foo.getFitness).to.be.calledOnce;
-			expect(foo.getFitness).to.be.calledOn(foo);
-			expect(bar.getFitness).to.be.calledOnce;
-			expect(bar.getFitness).to.be.calledOn(bar);
-			expect(baz.getFitness).to.be.calledOnce;
-			expect(baz.getFitness).to.be.calledOn(baz);
 		});
 
-		it('returns chromosome based on spin result', function() {
+		it('returns individual based on spin result', function() {
 			selector.spin
 				.onCall(0).returns(2.9)
 				.onCall(1).returns(3)
@@ -112,7 +104,7 @@ describe('RouletteSelector', function() {
 		});
 
 		it('returns null if selector is empty', function() {
-			selector.chromosomes = [];
+			selector.individuals = [];
 
 			expect(selector.select()).to.be.null;
 		});
