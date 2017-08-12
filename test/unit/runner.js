@@ -1,7 +1,9 @@
 const Runner = require('../../lib/runner');
 const sinon = require('sinon');
-const Generation = require('../../lib/generation');
-const TestChromosome = require('../lib/test-chromosome');
+const pasync = require('pasync');
+const GenePool = require('../../lib/gene-pool');
+const Population = require('../../lib/population');
+const TestIndividual = require('../lib/test-individual');
 
 describe('Runner', function() {
 	let sandbox;
@@ -14,302 +16,324 @@ describe('Runner', function() {
 		sandbox.restore();
 	});
 
-	it('initializes instance with provided generation and settings', function() {
-		let generation = new Generation();
+	it('initializes instance with provided population and settings', function() {
+		let population = new Population();
 		let settings = { foo: 'bar' };
 
-		let runner = new Runner(generation, settings);
+		let runner = new Runner(population, settings);
 
-		expect(runner.generation).to.equal(generation);
+		expect(runner.population).to.equal(population);
 		expect(runner.settings).to.equal(settings);
-		expect(runner.oldGeneration).to.be.null;
 		expect(runner.generationCount).to.equal(0);
 		expect(runner.solution).to.be.null;
 	});
 
 	it('defaults to empty settings object', function() {
-		let runner = new Runner();
+		let runner = new Runner(new Population());
 
 		expect(runner.settings).to.deep.equal({});
 	});
 
 	describe('::create', function() {
-		it('creates a populated runner based on provided settings object', function() {
-			let generationSize = 20;
+		it('creates a runner based on provided settings object', function() {
 			let settings = {
-				runnerSettings: { generationSize },
-				generationSettings: { foo: 'bar' },
-				selectorClass: function TestSelector() {},
-				selectorSettings: { baz: 'qux' },
+				generationSize: 100,
 				createChromosome: () => {},
-				createArg: 'create argument'
+				createArg: 'chromosome factory argument',
+				createConcurrency: 4,
+				fitnessConcurrency: 2,
+				foo: 'bar'
 			};
-			let generation = new Generation();
-			sandbox.stub(Generation, 'create').returns(generation);
-			sinon.stub(generation, 'populate');
+			let population = new Population();
+			sandbox.stub(Population, 'create').resolves(population);
+			sinon.stub(population, 'setFitnesses').resolves();
 
-			let result = Runner.create(settings);
+			return Runner.create(settings)
+				.then((result) => {
+					expect(Population.create).to.be.calledOnce;
+					expect(Population.create).to.be.calledOn(Population);
+					expect(Population.create).to.be.calledWith(
+						settings.generationSize,
+						settings.createChromosome,
+						settings.createArg,
+						settings.createConcurrency
+					);
+					expect(population.setFitnesses).to.be.calledOnce;
+					expect(population.setFitnesses).to.be.calledOn(population);
+					expect(population.setFitnesses).to.be.calledWith(
+						settings.fitnessConcurrency
+					);
+					expect(result).to.be.an.instanceof(Runner);
+					expect(result.population).to.equal(population);
+					expect(result.settings).to.deep.equal({
+						generationSize: 100,
+						fitnessConcurrency: 2,
+						foo: 'bar'
+					});
 
-			expect(Generation.create).to.be.calledOnce;
-			expect(Generation.create).to.be.calledOn(Generation);
-			expect(Generation.create).to.be.calledWith(
-				settings.selectorClass,
-				settings.selectorSettings,
-				settings.generationSettings
-			);
-			expect(generation.populate).to.be.calledOnce;
-			expect(generation.populate).to.be.calledOn(generation);
-			expect(generation.populate).to.be.calledWith(
-				generationSize,
-				settings.createChromosome,
-				settings.createArg
-			);
-			expect(result).to.be.an.instanceof(Runner);
-			expect(result.generation).to.equal(generation);
-			expect(result.settings).to.equal(settings.runnerSettings);
+					// Test rejection to ensure we aren't resolving early.
+					population.setFitnesses.rejects();
+					return Runner.create(settings)
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
+				});
 		});
 	});
 
 	describe('#checkForSolution', function() {
-		let generation, runner, best;
+		let population, runner, best;
 
 		beforeEach(function() {
-			generation = new Generation();
-			runner = new Runner(generation);
-			best = new TestChromosome('best');
-			sinon.stub(generation, 'getBest').returns(best);
-			sinon.stub(best, 'isSolution').returns(false);
+			population = new Population();
+			runner = new Runner(population);
+			best = new TestIndividual('best');
+
+			sinon.stub(population, 'getBest').returns(best);
+			sinon.stub(best, 'isSolution').resolves(false);
 		});
 
 		it('checks if the best chromosome is a solution', function() {
-			runner.checkForSolution();
-
-			expect(generation.getBest).to.be.calledOnce;
-			expect(generation.getBest).to.be.calledOn(generation);
-			expect(best.isSolution).to.be.calledOnce;
-			expect(best.isSolution).to.be.calledOn(best);
-			expect(runner.solution).to.be.null;
+			return runner.checkForSolution()
+				.then(() => {
+					expect(population.getBest).to.be.calledOnce;
+					expect(population.getBest).to.be.calledOn(population);
+					expect(best.isSolution).to.be.calledOnce;
+					expect(best.isSolution).to.be.calledOn(best);
+					expect(runner.solution).to.be.null;
+				});
 		});
 
-		it('sets solution property if best chromosome is a solution', function() {
-			best.isSolution.returns(true);
+		it('sets solution property to best if it is a solution', function() {
+			best.isSolution.resolves(true);
 
-			runner.checkForSolution();
-
-			expect(generation.getBest).to.be.calledOnce;
-			expect(generation.getBest).to.be.calledOn(generation);
-			expect(best.isSolution).to.be.calledOnce;
-			expect(best.isSolution).to.be.calledOn(best);
-			expect(runner.solution).to.equal(best);
-		});
-	});
-
-	describe('#startNewGeneration', function() {
-		it('advances generations and increments generation count', function() {
-			let generation = new Generation();
-			let runner = new Runner(generation);
-			let nextGeneration = new Generation();
-			sinon.stub(generation, 'getNext').returns(nextGeneration);
-			runner.generationCount = 2;
-
-			runner.startNewGeneration();
-
-			expect(generation.getNext).to.be.calledOnce;
-			expect(generation.getNext).to.be.calledOn(generation);
-			expect(runner.oldGeneration).to.equal(generation);
-			expect(runner.generation).to.equal(nextGeneration);
-			expect(runner.generationCount).to.equal(3);
-		});
-	});
-
-	describe('#runStep', function() {
-		let generation, runner, oldGeneration, foo, bar;
-
-		beforeEach(function() {
-			generation = new Generation();
-			runner = new Runner(generation);
-			oldGeneration = runner.oldGeneration = new Generation();
-			foo = new TestChromosome('foo');
-			bar = new TestChromosome('bar');
-
-			sinon.stub(oldGeneration, 'getOffspring').returns([ foo, bar ]);
-			sinon.stub(generation, 'add');
-			sinon.stub(foo, 'isSolution').returns(false);
-			sinon.stub(bar, 'isSolution').returns(false);
-		});
-
-		it('adds offspring to next generation, checking them for solutions', function() {
-			runner.runStep();
-
-			expect(oldGeneration.getOffspring).to.be.calledOnce;
-			expect(oldGeneration.getOffspring).to.be.calledOn(oldGeneration);
-			expect(generation.add).to.be.calledOnce;
-			expect(generation.add).to.be.calledOn(generation);
-			expect(generation.add).to.be.calledWithExactly(foo, bar);
-			expect(foo.isSolution).to.be.called;
-			expect(foo.isSolution).to.be.calledOn(foo);
-			expect(bar.isSolution).to.be.called;
-			expect(bar.isSolution).to.be.calledOn(bar);
-			expect(runner.solution).to.be.null;
-		});
-
-		it('sets solution property, if an offspring is a solution', function() {
-			bar.isSolution.returns(true);
-
-			runner.runStep();
-
-			expect(runner.solution).to.equal(bar);
-		});
-	});
-
-	describe('#populateNewGeneration', function() {
-		let generation, runner, size;
-
-		beforeEach(function() {
-			generation = new Generation();
-			runner = new Runner(generation, { generationSize: 3 });
-			size = 0;
-
-			sinon.stub(runner, 'runStep');
-			sinon.stub(generation, 'getSize').callsFake(() => size);
-		});
-
-		it('calls runStep until generation size matches generationSize setting', function() {
-			runner.runStep.callsFake(() => {
-				size += 1;
-				if (size >= 10) {
-					throw new Error('Too many runStep calls');
-				}
-			});
-
-			runner.populateNewGeneration();
-
-			expect(generation.getSize).to.be.called;
-			expect(generation.getSize).to.always.be.calledOn(generation);
-			expect(runner.runStep).to.be.calledThrice;
-			expect(runner.runStep).to.always.be.calledOn(runner);
-		});
-
-		it('stops when generation size exceeds setting', function() {
-			runner.runStep.callsFake(() => {
-				size += 2;
-				if (size >= 10) {
-					throw new Error('Too many runStep calls');
-				}
-			});
-
-			runner.populateNewGeneration();
-
-			expect(runner.runStep).to.be.calledTwice;
-		});
-
-		it('stops when solution is found', function() {
-			runner.runStep.callsFake(() => {
-				size += 1;
-				if (size == 2) {
-					runner.solution = new TestChromosome('solution');
-				} else if (size >= 10) {
-					throw new Error('Too many runStep calls');
-				}
-			});
-
-			runner.populateNewGeneration();
-
-			expect(runner.runStep).to.be.calledTwice;
+			return runner.checkForSolution()
+				.then(() => {
+					expect(runner.solution).to.equal(best);
+				});
 		});
 	});
 
 	describe('#runGeneration', function() {
-		it('starts and populates a new generation', function() {
-			let runner = new Runner();
-			sinon.stub(runner, 'startNewGeneration');
-			sinon.stub(runner, 'populateNewGeneration');
+		it('runs a single generation', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
+			let qux = new TestIndividual('qux');
 
-			runner.runGeneration();
+			let population = new Population([ foo, bar ]);
+			let settings = {
+				generationSize: 100,
+				generationLimit: 1000,
+				someSetting: 'whatever'
+			};
+			let runner = new Runner(population, settings);
+			let genePool = new GenePool();
+			let offspring = new Population([ baz, qux ]);
+			runner.generationCount = 2;
+			sandbox.stub(GenePool, 'fromPopulation').resolves(genePool);
+			sinon.stub(genePool, 'getOffspring').resolves(offspring);
 
-			expect(runner.startNewGeneration).to.be.calledOnce;
-			expect(runner.startNewGeneration).to.be.calledOn(runner);
-			expect(runner.populateNewGeneration).to.be.calledOnce;
-			expect(runner.populateNewGeneration).to.be.calledOn(runner);
-			expect(runner.startNewGeneration).to.be
-				.calledBefore(runner.populateNewGeneration);
+			return runner.runGeneration()
+				.then(() => {
+					expect(GenePool.fromPopulation).to.be.calledOnce;
+					expect(GenePool.fromPopulation).to.be.calledOn(GenePool);
+					expect(GenePool.fromPopulation).to.be.calledWith(
+						population,
+						{
+							generationSize: 100,
+							someSetting: 'whatever'
+						}
+					);
+					expect(genePool.getOffspring).to.be.calledOnce;
+					expect(genePool.getOffspring).to.be.calledOn(genePool);
+					expect(runner.population).to.equal(offspring);
+					expect(runner.generationCount).to.equal(3);
+
+					// Test rejection to ensure we aren't resolving early.
+					genePool.getOffspring.rejects();
+					return runner.runGeneration()
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
+				});
 		});
 	});
 
-	describe('#run', function() {
+	describe('#runStep', function() {
 		let runner;
 
 		beforeEach(function() {
 			runner = new Runner();
-			sinon.stub(runner, 'checkForSolution');
-			sinon.stub(runner, 'runGeneration').callsFake(() => {
-				runner.generationCount += 1;
-				if (runner.generationCount === 3) {
-					runner.solution = new TestChromosome('solution');
-				}
-			});
+
+			sinon.stub(runner, 'checkForSolution').resolves();
+			sinon.stub(runner, 'runGeneration').resolves();
 		});
 
-		it('checks for solution, then runs generations until a solution is found', function() {
-			runner.run();
-
-			expect(runner.checkForSolution).to.be.calledOnce;
-			expect(runner.checkForSolution).to.be.calledOn(runner);
-			expect(runner.runGeneration).to.be.calledThrice;
-			expect(runner.runGeneration).to.always.be.calledOn(runner);
-			expect(runner.runGeneration).to.be.calledAfter(runner.checkForSolution);
+		it('checks for solution, then runs a generation', function() {
+			return runner.runStep()
+				.then(() => {
+					expect(runner.checkForSolution).to.be.calledOnce;
+					expect(runner.checkForSolution).to.be.calledOn(runner);
+					expect(runner.runGeneration).to.be.calledOnce;
+					expect(runner.runGeneration).to.be.calledOn(runner);
+				})
+				.then(() => {
+					// Test #checkForSolution rejection to ensure correct order.
+					runner.checkForSolution.rejects();
+					runner.runGeneration.resetHistory();
+					return runner.runStep()
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {
+							expect(runner.runGeneration).to.not.be.called;
+						});
+				})
+				.then(() => {
+					// Test #runGeneration rejection to ensure we aren't resolving early.
+					runner.runGeneration.rejects();
+					return runner.runStep()
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
+				});
 		});
 
-		it('runs no generations if solution is already found', function() {
+		it('skips running generation if solution is already found', function() {
 			runner.checkForSolution.callsFake(() => {
-				runner.solution = new TestChromosome('solution');
+				runner.solution = new TestIndividual('solution');
+				return Promise.resolve();
 			});
 
-			runner.run();
-
-			expect(runner.runGeneration).to.not.be.called;
-		});
-
-		it('stops when generation limit is reached', function() {
-			runner.settings.generationLimit = 2;
-
-			runner.run();
-
-			expect(runner.runGeneration).to.be.calledTwice;
-			expect(runner.runGeneration).to.always.be.calledOn(runner);
-		});
-
-		it('supports generation limit of zero', function() {
-			runner.settings.generationLimit = 0;
-
-			runner.run();
-
-			expect(runner.runGeneration).to.not.be.called;
+			return runner.runStep()
+				.then(() => {
+					expect(runner.runGeneration).to.not.be.called;
+				});
 		});
 	});
 
 	describe('#getBest', function() {
-		let generation, runner, best;
+		let population, runner;
 
 		beforeEach(function() {
-			generation = new Generation();
-			runner = new Runner(generation);
-			best = new TestChromosome('best');
-			sinon.stub(generation, 'getBest').returns(best);
+			population = new Population();
+			runner = new Runner(population);
 		});
 
 		it('returns solution property if set', function() {
-			let solution = runner.solution = new TestChromosome('solution');
+			let solution = runner.solution = new TestIndividual('solution');
 
 			expect(runner.getBest()).to.equal(solution);
 		});
 
-		it('returns best chromosome otherwise', function() {
+		it('returns best individual otherwise', function() {
+			let best = new TestIndividual('best');
+			sinon.stub(population, 'getBest').returns(best);
+
 			let result = runner.getBest();
 
-			expect(generation.getBest).to.be.calledOnce;
-			expect(generation.getBest).to.be.calledOn(generation);
+			expect(population.getBest).to.be.calledOnce;
+			expect(population.getBest).to.be.calledOn(population);
 			expect(result).to.equal(best);
+		});
+	});
+
+	describe('#run', function() {
+		let runner, best;
+
+		beforeEach(function() {
+			runner = new Runner(new Population, { generationLimit: 10 });
+			best = new TestIndividual('best');
+
+			sandbox.stub(pasync, 'whilst').resolves();
+			sinon.stub(runner, 'getBest').returns(best);
+		});
+
+		it('resolves with best individual after pasync::whilst', function() {
+			return runner.run()
+				.then((result) => {
+					expect(pasync.whilst).to.be.calledOnce;
+					expect(pasync.whilst).to.be.calledOn(pasync);
+					expect(pasync.whilst).to.be.calledWith(
+						sinon.match.func,
+						sinon.match.func
+					);
+					expect(runner.getBest).to.be.calledOnce;
+					expect(runner.getBest).to.be.calledOn(runner);
+					expect(result).to.equal(best);
+				})
+				.then(() => {
+					// Test rejection to ensure we aren't resolving early.
+					pasync.whilst.rejects();
+					return runner.run()
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
+				});
+		});
+
+		describe('test', function() {
+			let test;
+
+			beforeEach(function() {
+				return runner.run()
+					.then(() => {
+						test = pasync.whilst.firstCall.args[0];
+					});
+			});
+
+			it('returns false if solution has been found', function() {
+				runner.solution = new TestIndividual('solution');
+
+				expect(test()).to.be.false;
+			});
+
+			it('returns false if generation limit has been reached', function() {
+				runner.generationCount = 10;
+
+				expect(test()).to.be.false;
+			});
+
+			it('returns false if generation limit has been exceeded', function() {
+				runner.generationCount = 11;
+
+				expect(test()).to.be.false;
+			});
+
+			it('returns true otherwise', function() {
+				runner.generationCount = 9;
+
+				expect(test()).to.be.true;
+			});
+		});
+
+		describe('iteratee', function() {
+			let iteratee;
+
+			beforeEach(function() {
+				return runner.run()
+					.then(() => {
+						iteratee = pasync.whilst.firstCall.args[1];
+					});
+			});
+
+			it('resolves after #runStep', function() {
+				sinon.stub(runner, 'runStep').resolves();
+
+				return iteratee()
+					.then(() => {
+						expect(runner.runStep).to.be.calledOnce;
+						expect(runner.runStep).to.be.calledOn(runner);
+					})
+					.then(() => {
+						// Test rejection to ensure we aren't resolving early.
+						runner.runStep.rejects();
+						return iteratee()
+							.then(() => {
+								throw new Error('Promise should have rejected.');
+							}, () => {});
+					});
+			});
 		});
 	});
 });
