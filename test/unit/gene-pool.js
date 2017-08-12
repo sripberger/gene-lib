@@ -58,15 +58,21 @@ describe('GenePool', function() {
 	});
 
 	describe('::getLitterCounts', function() {
-		it('returns crossover and copy counts created using utils::boolChance', function() {
-			let settings = {
+		let settings;
+
+		beforeEach(function() {
+			settings = {
 				generationSize: 10,
 				childCount: 2,
 				crossoverRate: 0.2
 			};
+
 			sandbox.stub(GenePool, 'getMaxCrossoverCount').returns(5);
-			sandbox.stub(utils, 'boolChance')
-				.returns(false)
+			sandbox.stub(utils, 'boolChance');
+		});
+
+		it('returns crossover and copy counts created using utils::boolChance', function() {
+			utils.boolChance.returns(false)
 				.onCall(1).returns(true)
 				.onCall(4).returns(true);
 
@@ -90,6 +96,18 @@ describe('GenePool', function() {
 				copyCount: 3
 			});
 		});
+
+		it('supports compoundCrossover setting', function() {
+			settings.compoundCrossover = true;
+
+			let result = GenePool.getLitterCounts(settings);
+
+			expect(utils.boolChance).to.not.be.called;
+			expect(result).to.deep.equal({
+				crossoverCount: 5,
+				copyCount: 0
+			});
+		});
 	});
 
 	describe('::create', function() {
@@ -97,7 +115,8 @@ describe('GenePool', function() {
 			let selector = new Selector();
 			let settings = {
 				foo: 'bar',
-				generationSize: 100
+				generationSize: 100,
+				compoundCrossover: true
 			};
 			sandbox.stub(GenePool, 'getLitterCounts').returns({
 				crossoverCount: 4,
