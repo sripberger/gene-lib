@@ -199,7 +199,6 @@ describe('GenePool', function() {
 		beforeEach(function() {
 			selector = new Selector();
 			pool = new GenePool(selector, {
-				selectionConcurrency: 3,
 				parentCount: 2,
 				crossoverCount: 4,
 				copyCount: 2,
@@ -211,6 +210,8 @@ describe('GenePool', function() {
 		});
 
 		it('resolves with organized pasync::timesLimit results', function() {
+			pool.settings.selectionConcurrency = 3;
+
 			return pool.performSelections()
 				.then((result) => {
 					expect(pool.getSelectionCount).to.be.calledOnce;
@@ -229,6 +230,21 @@ describe('GenePool', function() {
 						],
 						copies: [ individuals[4], individuals[5] ]
 					});
+				});
+		});
+
+		it('uses default selection concurrency of 1', function() {
+			return pool.performSelections()
+				.then((result) => {
+
+
+					expect(pasync.timesLimit).to.be.calledOnce;
+					expect(pasync.timesLimit).to.be.calledOn(pasync);
+					expect(pasync.timesLimit).to.be.calledWith(
+						6,
+						1,
+						sinon.match.func
+					);
 				});
 		});
 
@@ -270,7 +286,7 @@ describe('GenePool', function() {
 				[ individuals[2], individuals[3] ]
 			];
 
-			sinon.stub(pool, 'performSelections').returns({
+			sinon.stub(pool, 'performSelections').resolves({
 				crossovers,
 				copies: [ individuals[4], individuals[5] ]
 			});
