@@ -20,13 +20,17 @@ describe('GenePool', function() {
 		sandbox.restore();
 	});
 
-	it('stores provided selector and settings', function() {
+	it('stores provided selector, litter counts, and settings object', function() {
+		let crossoverCount = 10;
+		let copyCount = 50;
 		let selector = new Selector();
 		let settings = { foo: 'bar' };
 
-		let pool = new GenePool(selector, settings);
+		let pool = new GenePool(selector, crossoverCount, copyCount, settings);
 
 		expect(pool.selector).to.equal(selector);
+		expect(pool.crossoverCount).to.equal(crossoverCount);
+		expect(pool.copyCount).to.equal(copyCount);
 		expect(pool.settings).to.equal(settings);
 	});
 
@@ -111,13 +115,9 @@ describe('GenePool', function() {
 	});
 
 	describe('::create', function() {
-		it('replaces generationSize with litter counts for new instance', function() {
+		it('calculates litter counts for new instance', function() {
 			let selector = new Selector();
-			let settings = {
-				foo: 'bar',
-				generationSize: 100,
-				compoundCrossover: true
-			};
+			let settings = { generationSize: 100 };
 			sandbox.stub(GenePool, 'getLitterCounts').returns({
 				crossoverCount: 4,
 				copyCount: 16
@@ -130,11 +130,9 @@ describe('GenePool', function() {
 			expect(GenePool.getLitterCounts).to.be.calledWith(settings);
 			expect(result).to.be.an.instanceof(GenePool);
 			expect(result.selector).to.equal(selector);
-			expect(result.settings).to.deep.equal({
-				foo: 'bar',
-				crossoverCount: 4,
-				copyCount: 16,
-			});
+			expect(result.crossoverCount).to.equal(4);
+			expect(result.copyCount).to.equal(16);
+			expect(result.settings).to.equal(settings);
 		});
 	});
 
@@ -144,8 +142,7 @@ describe('GenePool', function() {
 			let settings = {
 				selectorClass: TestSelector,
 				selectorSettings: { foo: 'bar' },
-				addConcurrency: 4,
-				baz: 'qux'
+				addConcurrency: 4
 			};
 			let selector = new TestSelector();
 			let pool = new GenePool();
@@ -165,7 +162,7 @@ describe('GenePool', function() {
 					expect(GenePool.create).to.be.calledOn(GenePool);
 					expect(GenePool.create).to.be.calledWith(
 						selector,
-						{ baz: 'qux' }
+						settings
 					);
 					expect(result).to.equal(pool);
 				});
@@ -175,17 +172,13 @@ describe('GenePool', function() {
 	describe('#getSelectionCount', function() {
 		it('returns total number of individuals to be selected', function() {
 			let selector = new Selector();
-			let pool = new GenePool(selector, {
+			let pool = new GenePool(selector, 10, 40, {
 				parentCount: 2,
 				childCount: 2,
-				crossoverCount: 10,
-				copyCount: 40
 			});
-			let otherScheme = new GenePool(selector, {
+			let otherScheme = new GenePool(selector, 4, 16, {
 				parentCount: 3,
 				childCount: 5,
-				crossoverCount: 4,
-				copyCount: 16
 			});
 
 			expect(pool.getSelectionCount()).to.equal(100);
@@ -198,11 +191,7 @@ describe('GenePool', function() {
 
 		beforeEach(function() {
 			selector = new Selector();
-			pool = new GenePool(selector, {
-				parentCount: 2,
-				crossoverCount: 4,
-				copyCount: 2,
-			});
+			pool = new GenePool(selector, 4, 2, { parentCount: 2 });
 			individuals = _.times(6, (i) => new TestIndividual(i));
 
 			sinon.stub(pool, 'getSelectionCount').returns(6);
@@ -273,9 +262,9 @@ describe('GenePool', function() {
 		let pool, individuals, crossovers;
 
 		beforeEach(function() {
-			pool = new GenePool(new Selector(), {
+			pool = new GenePool(new Selector(), 2, 1, {
 				crossoverConcurrency: 2,
-				crossoverRate: 4,
+				crossoverRate: 0.3,
 				childCount: 2
 			});
 			individuals = _.times(10, (i) => new TestIndividual(i));
@@ -361,7 +350,7 @@ describe('GenePool', function() {
 			let fooPrime = new TestIndividual('foo-prime');
 			let barPrime = new TestIndividual('bar-prime');
 
-			pool = new GenePool(new Selector(), {
+			pool = new GenePool(new Selector(), 1, 1, {
 				mutationRate: 0.01,
 				mutationConcurrency: 4
 			});

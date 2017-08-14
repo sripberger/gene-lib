@@ -42,7 +42,6 @@ describe('Runner', function() {
 				createArg: 'chromosome factory argument',
 				createConcurrency: 4,
 				fitnessConcurrency: 2,
-				foo: 'bar'
 			};
 			let population = new Population();
 			sandbox.stub(Population, 'create').resolves(population);
@@ -65,11 +64,7 @@ describe('Runner', function() {
 					);
 					expect(result).to.be.an.instanceof(Runner);
 					expect(result.population).to.equal(population);
-					expect(result.settings).to.deep.equal({
-						generationSize: 100,
-						fitnessConcurrency: 2,
-						foo: 'bar'
-					});
+					expect(result.settings).to.equal(settings);
 
 					// Test rejection to ensure we aren't resolving early.
 					population.setFitnesses.rejects();
@@ -122,11 +117,7 @@ describe('Runner', function() {
 			let qux = new TestIndividual('qux');
 
 			let population = new Population([ foo, bar ]);
-			let settings = {
-				generationSize: 100,
-				generationLimit: 1000,
-				someSetting: 'whatever'
-			};
+			let settings = { generationSize: 100 };
 			let runner = new Runner(population, settings);
 			let genePool = new GenePool();
 			let offspring = new Population([ baz, qux ]);
@@ -140,10 +131,7 @@ describe('Runner', function() {
 					expect(GenePool.fromPopulation).to.be.calledOn(GenePool);
 					expect(GenePool.fromPopulation).to.be.calledWith(
 						population,
-						{
-							generationSize: 100,
-							someSetting: 'whatever'
-						}
+						settings
 					);
 					expect(genePool.getOffspring).to.be.calledOnce;
 					expect(genePool.getOffspring).to.be.calledOn(genePool);
