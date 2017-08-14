@@ -235,9 +235,7 @@ describe('GenePool', function() {
 
 		it('uses default selection concurrency of 1', function() {
 			return pool.performSelections()
-				.then((result) => {
-
-
+				.then(() => {
 					expect(pasync.timesLimit).to.be.calledOnce;
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
 					expect(pasync.timesLimit).to.be.calledWith(
