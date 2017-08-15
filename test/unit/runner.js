@@ -5,7 +5,7 @@ const GenePool = require('../../lib/gene-pool');
 const Population = require('../../lib/population');
 const TestIndividual = require('../lib/test-individual');
 
-describe('Runner', function() {
+describe.skip('Runner', function() {
 	let sandbox;
 
 	beforeEach(function() {

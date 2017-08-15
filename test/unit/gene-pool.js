@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const _ = require('lodash');
 const pasync = require('pasync');
 const XError = require('xerror');
+const BreedingScheme = require('../../lib/breeding-scheme');
 const Population = require('../../lib/population');
 const Selector = require('../../lib/selector');
 const utils = require('../../lib/utils');
@@ -115,21 +116,25 @@ describe('GenePool', function() {
 	});
 
 	describe('::create', function() {
-		it('calculates litter counts for new instance', function() {
-			let selector = new Selector();
-			let settings = { generationSize: 100 };
+		it('creates selector and calculates litter counts for a new instance', function() {
+			let selectorSettings = { foo: 'bar' };
+			let settings = {
+				selectorClass: TestSelector,
+				selectorSettings
+			};
 			sandbox.stub(GenePool, 'getLitterCounts').returns({
 				crossoverCount: 4,
 				copyCount: 16
 			});
+			let result = GenePool.create(settings);
 
-			let result = GenePool.create(selector, settings);
 
 			expect(GenePool.getLitterCounts).to.be.calledOnce;
 			expect(GenePool.getLitterCounts).to.be.calledOn(GenePool);
 			expect(GenePool.getLitterCounts).to.be.calledWith(settings);
 			expect(result).to.be.an.instanceof(GenePool);
-			expect(result.selector).to.equal(selector);
+			expect(result.selector).to.be.an.instanceof(TestSelector);
+			expect(result.selector.settings).to.equal(selectorSettings);
 			expect(result.crossoverCount).to.equal(4);
 			expect(result.copyCount).to.equal(16);
 			expect(result.settings).to.equal(settings);
@@ -137,35 +142,152 @@ describe('GenePool', function() {
 	});
 
 	describe('::fromPopulation', function() {
-		it('creates a GenePool from a population based on provided settings', function() {
-			let population = new Population();
-			let settings = {
-				selectorClass: TestSelector,
-				selectorSettings: { foo: 'bar' },
-				addConcurrency: 4
-			};
-			let selector = new TestSelector();
-			let pool = new GenePool();
-			sinon.stub(population, 'toSelector').resolves(selector);
-			sandbox.stub(GenePool, 'create').returns(pool);
+		let settings, population, pool;
 
-			return GenePool.fromPopulation(population, settings)
+		beforeEach(function() {
+			settings = {};
+			population = new Population([], settings);
+			pool = new GenePool();
+			sandbox.stub(GenePool, 'fromPopulationSync').returns(pool);
+			sandbox.stub(GenePool, 'fromPopulationAsync').resolves(pool);
+		});
+
+		context('settings.async is not set', function() {
+			it('returns result of ::fromPopulationSync', function() {
+				let result = GenePool.fromPopulation(population);
+
+				expect(GenePool.fromPopulationSync).to.be.calledOnce;
+				expect(GenePool.fromPopulationSync).to.be.calledOn(GenePool);
+				expect(GenePool.fromPopulationSync).to.be.calledWith(population);
+				expect(result).to.equal(pool);
+			});
+		});
+
+		context('settings.async.add is not set', function() {
+			it('returns result of ::fromPopulationSync', function() {
+				settings.async = {};
+
+				let result = GenePool.fromPopulation(population);
+
+				expect(GenePool.fromPopulationSync).to.be.calledOnce;
+				expect(GenePool.fromPopulationSync).to.be.calledOn(GenePool);
+				expect(GenePool.fromPopulationSync).to.be.calledWith(population);
+				expect(result).to.equal(pool);
+			});
+		});
+
+		context('settings.async.add is set', function() {
+			it('resolves with result of ::fromPopulationSync', function() {
+				settings.async = { add: 1 };
+
+				return GenePool.fromPopulation(population)
+					.then((result) => {
+						expect(GenePool.fromPopulationAsync).to.be.calledOnce;
+						expect(GenePool.fromPopulationAsync).to.be.calledOn(
+							GenePool
+						);
+						expect(GenePool.fromPopulationAsync).to.be.calledWith(
+							population
+						);
+						expect(result).to.equal(pool);
+					});
+			});
+		});
+	});
+
+	describe('::fromPopulationSync', function() {
+		it('creates a GenePool and adds individuals to selector', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let population = new Population([ foo, bar ], { baz: 'qux' });
+			let selector = new Selector();
+			let pool = new GenePool(selector);
+			sandbox.stub(GenePool, 'create').returns(pool);
+			sinon.stub(selector, 'add');
+
+			let result = GenePool.fromPopulationSync(population);
+
+			expect(GenePool.create).to.be.calledOnce;
+			expect(GenePool.create).to.be.calledOn(GenePool);
+			expect(GenePool.create).to.be.calledWith(population.settings);
+			expect(selector.add).to.be.calledTwice;
+			expect(selector.add).to.always.be.calledOn(selector);
+			expect(selector.add).to.be.calledWith(foo);
+			expect(selector.add).to.be.calledWith(bar);
+			expect(result).to.equal(pool);
+		});
+	});
+
+	describe('::fromPopulationAsync', function() {
+		let population, selector, pool;
+
+		beforeEach(function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+
+			population = new Population([ foo, bar ], { async: { add: 1 } });
+			selector = new Selector();
+			pool = new GenePool(selector);
+
+			sandbox.stub(GenePool, 'create').returns(pool);
+			sandbox.stub(pasync, 'eachLimit').resolves();
+		});
+
+		it('creates a GenePool and iterates indivduals with pasync::eachLimit', function() {
+			return GenePool.fromPopulationAsync(population)
 				.then((result) => {
-					expect(population.toSelector).to.be.calledOnce;
-					expect(population.toSelector).to.be.calledOn(population);
-					expect(population.toSelector).to.be.calledWith(
-						settings.selectorClass,
-						settings.selectorSettings,
-						settings.addConcurrency
-					);
 					expect(GenePool.create).to.be.calledOnce;
 					expect(GenePool.create).to.be.calledOn(GenePool);
 					expect(GenePool.create).to.be.calledWith(
-						selector,
-						settings
+						population.settings
+					);
+					expect(pasync.eachLimit).to.be.calledOnce;
+					expect(pasync.eachLimit).to.be.calledOn(pasync);
+					expect(pasync.eachLimit).to.be.calledWith(
+						population.individuals,
+						population.settings.async.add,
+						sinon.match.func
 					);
 					expect(result).to.equal(pool);
+				})
+				.then(() => {
+					// Test rejection to ensure we aren't resolving early.
+					pasync.eachLimit.rejects();
+					return GenePool.fromPopulationAsync(population)
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
 				});
+		});
+
+		describe('iteratee', function() {
+			let iteratee;
+
+			beforeEach(function() {
+				return GenePool.fromPopulationAsync(population)
+					.then(() => {
+						iteratee = pasync.eachLimit.firstCall.args[2];
+					});
+			});
+
+			it('resolves with result of selector#add', function() {
+				let [ foo ] = population.individuals;
+				sinon.stub(selector, 'add').resolves();
+
+				return iteratee(foo)
+					.then(() => {
+						expect(selector.add).to.be.calledOnce;
+						expect(selector.add).to.be.calledOn(selector);
+						expect(selector.add).to.be.calledWith(foo);
+					}).then(() => {
+						// Test rejection to ensure we aren't resolving early.
+						selector.add.rejects();
+						return iteratee(foo)
+							.then(() => {
+								throw new Error('Promise should have rejected.');
+							}, () => {});
+					});
+			});
 		});
 	});
 
@@ -187,21 +309,102 @@ describe('GenePool', function() {
 	});
 
 	describe('#performSelections', function() {
+		let pool, scheme;
+
+		beforeEach(function() {
+			pool = new GenePool();
+			scheme = new BreedingScheme();
+
+			sinon.stub(pool, 'performSelectionsSync').returns(scheme);
+			sinon.stub(pool, 'performSelectionsAsync').resolves(scheme);
+		});
+
+		context('settings.async is not set', function() {
+			it('returns result of ::fromPopulationSync', function() {
+				let result = pool.performSelections();
+
+				expect(pool.performSelectionsSync).to.be.calledOnce;
+				expect(pool.performSelectionsSync).to.be.calledOn(pool);
+				expect(result).to.equal(scheme);
+			});
+		});
+
+		context('settings.async.selection is not set', function() {
+			it('returns result of ::fromPopulationSync', function() {
+				pool.settings.async = {};
+
+				let result = pool.performSelections();
+
+				expect(pool.performSelectionsSync).to.be.calledOnce;
+				expect(pool.performSelectionsSync).to.be.calledOn(pool);
+				expect(result).to.equal(scheme);
+			});
+		});
+
+		context('settings.async.selection is set', function() {
+			it('resolves with result of ::fromPopulationSync', function() {
+				pool.settings.async = { selection: 1 };
+
+				return pool.performSelections()
+					.then((result) => {
+						expect(pool.performSelectionsAsync).to.be.calledOnce;
+						expect(pool.performSelectionsAsync).to.be.calledOn(pool);
+						expect(result).to.equal(scheme);
+					});
+			});
+		});
+	});
+
+	describe('#performSelectionsSync', function() {
+		it('returns breeding scheme from selection results', function() {
+			let selector = new Selector();
+			let pool = new GenePool(selector, 4, 2, { parentCount: 2 });
+			let individuals = _.times(6, (i) => new TestIndividual(i));
+			sinon.stub(pool, 'getSelectionCount').returns(6);
+			sinon.stub(selector, 'select')
+				.onCall(0).returns(individuals[0])
+				.onCall(1).returns(individuals[1])
+				.onCall(2).returns(individuals[2])
+				.onCall(3).returns(individuals[3])
+				.onCall(4).returns(individuals[4])
+				.onCall(5).returns(individuals[5]);
+
+			let result = pool.performSelectionsSync();
+
+			expect(pool.getSelectionCount).to.be.calledOnce;
+			expect(pool.getSelectionCount).to.be.calledOn(pool);
+			expect(selector.select).to.have.callCount(6);
+			expect(selector.select).to.always.be.calledOn(selector);
+			expect(result).to.be.an.instanceof(BreedingScheme);
+			expect(result.crossovers).to.deep.equal([
+				[ individuals[0], individuals[1] ],
+				[ individuals[2], individuals[3] ]
+			]);
+			expect(result.copies).to.deep.equal([
+				individuals[4],
+				individuals[5]
+			]);
+			expect(result.settings).to.equal(pool.settings);
+		});
+	});
+
+	describe('#performSelectionsAsync', function() {
 		let selector, pool, individuals;
 
 		beforeEach(function() {
 			selector = new Selector();
-			pool = new GenePool(selector, 4, 2, { parentCount: 2 });
+			pool = new GenePool(selector, 4, 2, {
+				parentCount: 2,
+				async: { selection: 4 }
+			});
 			individuals = _.times(6, (i) => new TestIndividual(i));
 
 			sinon.stub(pool, 'getSelectionCount').returns(6);
 			sandbox.stub(pasync, 'timesLimit').resolves(individuals);
 		});
 
-		it('resolves with organized pasync::timesLimit results', function() {
-			pool.settings.selectionConcurrency = 3;
-
-			return pool.performSelections()
+		it('resolves with breeding scheme from pasync::timesLimit results', function() {
+			return pool.performSelectionsAsync()
 				.then((result) => {
 					expect(pool.getSelectionCount).to.be.calledOnce;
 					expect(pool.getSelectionCount).to.be.calledOn(pool);
@@ -209,29 +412,19 @@ describe('GenePool', function() {
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
 					expect(pasync.timesLimit).to.be.calledWith(
 						6,
-						pool.settings.selectionConcurrency,
+						pool.settings.async.selection,
 						sinon.match.func
 					);
-					expect(result).to.deep.equal({
-						crossovers: [
-							[ individuals[0], individuals[1] ],
-							[ individuals[2], individuals[3] ]
-						],
-						copies: [ individuals[4], individuals[5] ]
-					});
-				});
-		});
-
-		it('uses default selection concurrency of 1', function() {
-			return pool.performSelections()
-				.then(() => {
-					expect(pasync.timesLimit).to.be.calledOnce;
-					expect(pasync.timesLimit).to.be.calledOn(pasync);
-					expect(pasync.timesLimit).to.be.calledWith(
-						6,
-						1,
-						sinon.match.func
-					);
+					expect(result).to.be.an.instanceof(BreedingScheme);
+					expect(result.crossovers).to.deep.equal([
+						[ individuals[0], individuals[1] ],
+						[ individuals[2], individuals[3] ]
+					]);
+					expect(result.copies).to.deep.equal([
+						individuals[4],
+						individuals[5]
+					]);
+					expect(result.settings).to.equal(pool.settings);
 				});
 		});
 
@@ -239,183 +432,23 @@ describe('GenePool', function() {
 			let iteratee;
 
 			beforeEach(function() {
-				return pool.performSelections()
+				return pool.performSelectionsAsync()
 					.then(() => {
 						iteratee = pasync.timesLimit.firstCall.args[2];
 					});
 			});
 
-			it('returns result of selector#select', function() {
+			it('resolves with result of selector#select', function() {
 				let [ individual ] = individuals;
-				sinon.stub(selector, 'select').returns(individual);
+				sinon.stub(selector, 'select').resolves(individual);
 
-				let result = iteratee();
-
-				expect(selector.select).to.be.calledOnce;
-				expect(selector.select).to.be.calledOn(selector);
-				expect(result).to.equal(individual);
-			});
-		});
-	});
-
-	describe('#getUnmutatedOffpsring', function() {
-		let pool, individuals, crossovers;
-
-		beforeEach(function() {
-			pool = new GenePool(new Selector(), 2, 1, {
-				crossoverConcurrency: 2,
-				crossoverRate: 0.3,
-				childCount: 2
-			});
-			individuals = _.times(10, (i) => new TestIndividual(i));
-			crossovers = [
-				[ individuals[0], individuals[1] ],
-				[ individuals[2], individuals[3] ]
-			];
-
-			sinon.stub(pool, 'performSelections').resolves({
-				crossovers,
-				copies: [ individuals[4], individuals[5] ]
-			});
-			sandbox.stub(pasync, 'mapLimit').resolves([
-				[ individuals[6], individuals[7] ],
-				[ individuals[8], individuals[9] ]
-			]);
-		});
-
-		it('combines all crossover and copy results into one population', function() {
-			return pool.getUnmutatedOffpsring()
-				.then((result) => {
-					expect(pool.performSelections).to.be.calledOnce;
-					expect(pool.performSelections).to.be.calledOn(pool);
-					expect(pasync.mapLimit).to.be.calledOnce;
-					expect(pasync.mapLimit).to.be.calledOn(pasync);
-					expect(pasync.mapLimit).to.be.calledWith(
-						crossovers,
-						pool.settings.crossoverConcurrency,
-						sinon.match.func
-					);
-					expect(result).to.be.an.instanceof(Population);
-					expect(result.individuals).to.deep.equal([
-						individuals[4],
-						individuals[5],
-						individuals[6],
-						individuals[7],
-						individuals[8],
-						individuals[9]
-					]);
-				});
-		});
-
-		describe('iteratee', function () {
-			let iteratee;
-
-			beforeEach(function() {
-				return pool.getUnmutatedOffpsring()
-					.then(() => {
-						iteratee = pasync.mapLimit.firstCall.args[2];
-					});
-			});
-
-			it('resolves with result of Individual#crossover', function() {
-				let foo = new TestIndividual('foo');
-				let bar = new TestIndividual('bar');
-				let baz = new TestIndividual('baz');
-				let fooBar = new TestIndividual('foo-bar');
-				let barFoo = new TestIndividual('bar-foo');
-				let crossoverResult = [ fooBar, barFoo ];
-				sinon.stub(foo, 'crossover').resolves(crossoverResult);
-
-
-				return iteratee([ foo, bar, baz ])
+				return iteratee()
 					.then((result) => {
-						expect(foo.crossover).to.be.calledOnce;
-						expect(foo.crossover).to.be.calledOn(foo);
-						expect(foo.crossover).to.be.calledWith(
-							[ bar, baz ],
-							pool.settings.crossoverRate
-						);
-						expect(result).to.equal(crossoverResult);
+						expect(selector.select).to.be.calledOnce;
+						expect(selector.select).to.be.calledOn(selector);
+						expect(result).to.equal(individual);
 					});
 			});
-		});
-	});
-
-	describe('#getUnscoredOffspring', function() {
-		let pool, unmutated, mutants;
-
-		beforeEach(function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let fooPrime = new TestIndividual('foo-prime');
-			let barPrime = new TestIndividual('bar-prime');
-
-			pool = new GenePool(new Selector(), 1, 1, {
-				mutationRate: 0.01,
-				mutationConcurrency: 4
-			});
-			unmutated = new Population([ foo, bar ]);
-			mutants = new Population([ fooPrime, barPrime ]);
-
-			sinon.stub(pool, 'getUnmutatedOffpsring').resolves(unmutated);
-			sinon.stub(unmutated, 'mutate').resolves(mutants);
-		});
-
-		it('resolves with mutated offspring', function() {
-			return pool.getUnscoredOffspring()
-				.then((result) => {
-					expect(pool.getUnmutatedOffpsring).to.be.calledOnce;
-					expect(pool.getUnmutatedOffpsring).to.be.calledOn(pool);
-					expect(unmutated.mutate).to.be.calledOnce;
-					expect(unmutated.mutate).to.be.calledOn(unmutated);
-					expect(unmutated.mutate).to.be.calledWith(
-						pool.settings.mutationRate,
-						pool.settings.mutationConcurrency
-					);
-					expect(result).to.equal(mutants);
-				});
-		});
-
-		it('skips mutation if mutation rate is zero', function() {
-			pool.settings.mutationRate = 0;
-
-			return pool.getUnscoredOffspring()
-				.then((result) => {
-					expect(pool.getUnmutatedOffpsring).to.be.calledOnce;
-					expect(pool.getUnmutatedOffpsring).to.be.calledOn(pool);
-					expect(unmutated.mutate).to.not.be.called;
-					expect(result).to.equal(unmutated);
-				});
-		});
-	});
-
-	describe('#getOffspring', function() {
-		it('resolves with scored offpsring', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let pool = new GenePool(new Selector(), { fitnessConcurrency: 4 });
-			let offspring = new Population([ foo, bar ]);
-			sinon.stub(pool, 'getUnscoredOffspring').resolves(offspring);
-			sinon.stub(offspring, 'setFitnesses').resolves();
-
-			return pool.getOffspring()
-				.then((result) => {
-					expect(pool.getUnscoredOffspring).to.be.calledOnce;
-					expect(pool.getUnscoredOffspring).to.be.calledOn(pool);
-					expect(offspring.setFitnesses).to.be.calledOnce;
-					expect(offspring.setFitnesses).to.be.calledOn(offspring);
-					expect(offspring.setFitnesses).to.be.calledWith(
-						pool.settings.fitnessConcurrency
-					);
-					expect(result).to.equal(offspring);
-
-					// Test rejection to ensure we aren't resolving early.
-					offspring.setFitnesses.rejects();
-					return pool.getOffspring()
-						.then(() => {
-							throw new Error('Promise should have rejected');
-						}, () => {});
-				});
 		});
 	});
 });
