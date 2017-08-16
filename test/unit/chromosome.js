@@ -62,36 +62,6 @@ describe('Chromosome', function() {
 		});
 	});
 
-	describe('#isSolution', function() {
-		let chromosome;
-
-		beforeEach(function() {
-			chromosome = new Chromosome();
-			sinon.stub(chromosome, 'getFitness');
-		});
-
-		it('returns true if fitness is Infinity', function() {
-			chromosome.getFitness.returns(Infinity);
-
-			let result = chromosome.isSolution();
-
-			expect(chromosome.getFitness).to.be.calledOnce;
-			expect(chromosome.getFitness).to.be.calledOn(chromosome);
-			expect(result).to.be.true;
-		});
-
-		it('returns false otherwise', function() {
-			chromosome.getFitness.returns(42);
-
-			let result = chromosome.isSolution();
-
-			expect(chromosome.getFitness).to.be.calledOnce;
-			expect(chromosome.getFitness).to.be.calledOn(chromosome);
-			expect(result).to.be.false;
-		});
-	});
-
-
 	describe('#crossover', function() {
 		it('returns unchanged parents', function() {
 			let foo = new TestChromosome('foo');

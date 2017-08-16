@@ -85,21 +85,6 @@ describe('Individual', function() {
 		});
 	});
 
-	describe('#isSolution', function() {
-		it('returns result of chromosome#isSolution', function() {
-			let isSolutionResult = 'is solution?';
-			let chromosome = new TestChromosome('chromosome');
-			let individual = new Individual(chromosome);
-			sinon.stub(chromosome, 'isSolution').returns(isSolutionResult);
-
-			let result = individual.isSolution();
-
-			expect(chromosome.isSolution).to.be.calledOnce;
-			expect(chromosome.isSolution).to.be.calledOn(chromosome);
-			expect(result).to.equal(isSolutionResult);
-		});
-	});
-
 	describe('#crossoverSync', function() {
 		const rate = '0.2';
 		let foo, bar, baz, fooBar, barFoo, fooIndividual, barIndividual, bazIndividual;
