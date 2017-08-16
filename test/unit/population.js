@@ -34,6 +34,55 @@ describe('Population', function() {
 		expect(population.settings).to.deep.equal({});
 	});
 
+	describe('::create', function() {
+		let settings, population;
+
+		beforeEach(function() {
+			settings = {};
+			population = new Population();
+			sandbox.stub(Population, 'createSync').returns(population);
+			sandbox.stub(Population, 'createAsync').resolves(population);
+		});
+
+		context('settings.async is not set', function() {
+			it('returns result of ::createSync', function() {
+				let result = Population.create(settings);
+
+				expect(Population.createSync).to.be.calledOnce;
+				expect(Population.createSync).to.be.calledOn(Population);
+				expect(Population.createSync).to.be.calledWith(settings);
+				expect(result).to.equal(population);
+			});
+		});
+
+		context('settings.async.creation is not set', function() {
+			it('returns result of ::createSync', function() {
+				settings.async = {};
+
+				let result = Population.create(settings);
+
+				expect(Population.createSync).to.be.calledOnce;
+				expect(Population.createSync).to.be.calledOn(Population);
+				expect(Population.createSync).to.be.calledWith(settings);
+				expect(result).to.equal(population);
+			});
+		});
+
+		context('settings.async.creation is set', function() {
+			it('resolves with result of ::createAsync', function() {
+				settings.async = { creation: 1 };
+
+				return Population.create(settings)
+					.then((result) => {
+						expect(Population.createAsync).to.be.calledOnce;
+						expect(Population.createAsync).to.be.calledOn(Population);
+						expect(Population.createAsync).to.be.calledWith(settings);
+						expect(result).to.equal(population);
+					});
+			});
+		});
+	});
+
 	describe('::createSync', function() {
 		it('creates population using Individual::createSync', function() {
 			let foo = new TestIndividual('foo');
@@ -136,7 +185,7 @@ describe('Population', function() {
 			expect(population.getBest()).to.equal(bar);
 		});
 	});
-	
+
 	describe('#setFitnesses', function() {
 		let settings, population;
 
