@@ -130,6 +130,7 @@ describe('BreedingScheme', function() {
 				individuals[10],
 				individuals[11]
 			]);
+			expect(result.settings).to.equal(scheme.settings);
 		});
 	});
 
@@ -173,6 +174,7 @@ describe('BreedingScheme', function() {
 						individuals[10],
 						individuals[11]
 					]);
+					expect(result.settings).to.equal(scheme.settings);
 				});
 		});
 
