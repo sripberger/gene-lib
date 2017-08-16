@@ -123,6 +123,158 @@ describe('Population', function() {
 		});
 	});
 
+	describe('#getBest', function() {
+		it('returns individual with the highest fitness', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let baz = new TestIndividual('baz');
+			let population = new Population([ foo, bar, baz ]);
+			foo.fitness = 8;
+			bar.fitness = 10;
+			baz.fitness = 9;
+
+			expect(population.getBest()).to.equal(bar);
+		});
+	});
+	
+	describe('#setFitnesses', function() {
+		let settings, population;
+
+		beforeEach(function() {
+			settings = {};
+			population = new Population([], settings);
+			sinon.stub(population, 'setFitnessesSync').returns(population);
+			sinon.stub(population, 'setFitnessesAsync').resolves(population);
+		});
+
+		context('settings.async is not set', function() {
+			it('returns instance after invoking #setFitnessesSync', function() {
+				let result = population.setFitnesses();
+
+				expect(population.setFitnessesSync).to.be.calledOnce;
+				expect(population.setFitnessesSync).to.be.calledOn(population);
+				expect(result).to.equal(population);
+			});
+		});
+
+		context('settings.async.fitness is not set', function() {
+			it('returns instance after invoking #setFitnessesSync', function() {
+				settings.async = {};
+
+				let result = population.setFitnesses();
+
+				expect(population.setFitnessesSync).to.be.calledOnce;
+				expect(population.setFitnessesSync).to.be.calledOn(population);
+				expect(result).to.equal(population);
+			});
+		});
+
+		context('settings.async.fitness is set', function() {
+			it('resolves with instance after invoking #setFitnessesAsync', function() {
+				settings.async = { fitness: 1 };
+
+				return population.setFitnesses()
+					.then((result) => {
+						expect(population.setFitnessesAsync).to.be.calledOnce;
+						expect(population.setFitnessesAsync).to.be.calledOn(
+							population
+						);
+						expect(result).to.equal(population);
+					}).then(() => {
+						// Test rejection to ensure we aren't resolving early.
+						population.setFitnessesAsync.rejects();
+						return population.setFitnesses()
+							.then(() => {
+								throw new Error('Promise should have rejected');
+							}, () => {});
+					});
+			});
+		});
+	});
+
+	describe('#setFitnessesSync', function() {
+		it('returns instance after setting fitness on each individual', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let population = new Population([ foo, bar ]);
+			sinon.stub(foo, 'setFitnessSync');
+			sinon.stub(bar, 'setFitnessSync');
+
+			let result = population.setFitnessesSync();
+
+			expect(foo.setFitnessSync).to.be.calledOnce;
+			expect(foo.setFitnessSync).to.be.calledOn(foo);
+			expect(bar.setFitnessSync).to.be.calledOnce;
+			expect(bar.setFitnessSync).to.be.calledOn(bar);
+			expect(result).to.equal(population);
+		});
+	});
+
+	describe('#setFitnessesAsync', function() {
+		let individuals, settings, population;
+
+		beforeEach(function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+
+			individuals = [ foo, bar ];
+			settings = { async: { fitness: 4 } };
+			population = new Population(individuals, settings);
+
+			sandbox.stub(pasync, 'eachLimit').resolves();
+		});
+
+		it('resolves with instance after asynchronously iterating over each individual', function() {
+			return population.setFitnessesAsync()
+				.then((result) => {
+					expect(pasync.eachLimit).to.be.calledOnce;
+					expect(pasync.eachLimit).to.be.calledOn(pasync);
+					expect(pasync.eachLimit).to.be.calledWith(
+						individuals,
+						settings.async.fitness,
+						sinon.match.func
+					);
+					expect(result).to.equal(population);
+
+					// Test rejection to ensure we aren't resolving early.
+					pasync.eachLimit.rejects();
+					return population.setFitnessesAsync()
+						.then(() => {
+							throw new Error('Promise should have rejected');
+						}, () => {});
+				});
+		});
+
+		describe('iteratee', function() {
+			let iteratee;
+
+			beforeEach(function() {
+				return population.setFitnessesAsync()
+					.then(() => {
+						iteratee = pasync.eachLimit.firstCall.args[2];
+					});
+			});
+
+			it('resolves after invoking individual#setFitness', function() {
+				let [ foo ] = individuals;
+				sinon.stub(foo, 'setFitnessAsync').resolves();
+
+				return iteratee(foo)
+					.then(() => {
+						expect(foo.setFitnessAsync).to.be.calledOnce;
+						expect(foo.setFitnessAsync).to.be.calledOn(foo);
+
+						// Test rejection to ensure we aren't resolving early.
+						foo.setFitnessAsync.rejects();
+						return iteratee(foo)
+							.then(() => {
+								throw new Error('Promise should have rejected');
+							}, () => {});
+					});
+			});
+		});
+	});
+
 	describe('#mutate', function() {
 		let settings, population, mutants;
 
@@ -255,153 +407,6 @@ describe('Population', function() {
 						expect(result).to.equal(fooPrime);
 					});
 			});
-		});
-	});
-
-	describe('#setFitnesses', function() {
-		let settings, population;
-
-		beforeEach(function() {
-			settings = {};
-			population = new Population([], settings);
-			sinon.stub(population, 'setFitnessesSync');
-			sinon.stub(population, 'setFitnessesAsync').resolves();
-		});
-
-		context('settings.async is not set', function() {
-			it('invokes #setFitnessesSync', function() {
-				population.setFitnesses();
-
-				expect(population.setFitnessesSync).to.be.calledOnce;
-				expect(population.setFitnessesSync).to.be.calledOn(population);
-			});
-		});
-
-		context('settings.async.fitness is not set', function() {
-			it('invokes #setFitnessesSync', function() {
-				settings.async = {};
-
-				population.setFitnesses();
-
-				expect(population.setFitnessesSync).to.be.calledOnce;
-				expect(population.setFitnessesSync).to.be.calledOn(population);
-			});
-		});
-
-		context('settings.async.fitness is set', function() {
-			it('resolves after invoking #setFitnessesAsync', function() {
-				settings.async = { fitness: 1 };
-
-				return population.setFitnesses()
-					.then(() => {
-						expect(population.setFitnessesAsync).to.be.calledOnce;
-						expect(population.setFitnessesAsync).to.be.calledOn(
-							population
-						);
-					}).then(() => {
-						// Test rejection to ensure we aren't resolving early.
-						population.setFitnessesAsync.rejects();
-						return population.setFitnesses()
-							.then(() => {
-								throw new Error('Promise should have rejected');
-							}, () => {});
-					});
-			});
-		});
-	});
-
-	describe('#setFitnessesSync', function() {
-		it('invokes setFitness on each individual', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let population = new Population([ foo, bar ]);
-			sinon.stub(foo, 'setFitnessSync');
-			sinon.stub(bar, 'setFitnessSync');
-
-			population.setFitnessesSync();
-
-			expect(foo.setFitnessSync).to.be.calledOnce;
-			expect(foo.setFitnessSync).to.be.calledOn(foo);
-			expect(bar.setFitnessSync).to.be.calledOnce;
-			expect(bar.setFitnessSync).to.be.calledOn(bar);
-		});
-	});
-
-	describe('#setFitnessesAsync', function() {
-		let individuals, settings, population;
-
-		beforeEach(function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-
-			individuals = [ foo, bar ];
-			settings = { async: { fitness: 4 } };
-			population = new Population(individuals, settings);
-
-			sandbox.stub(pasync, 'eachLimit').resolves();
-		});
-
-		it('resolves after asynchronously iterating over each individual', function() {
-			return population.setFitnessesAsync()
-				.then(() => {
-					expect(pasync.eachLimit).to.be.calledOnce;
-					expect(pasync.eachLimit).to.be.calledOn(pasync);
-					expect(pasync.eachLimit).to.be.calledWith(
-						individuals,
-						settings.async.fitness,
-						sinon.match.func
-					);
-
-					// Test rejection to ensure we aren't resolving early.
-					pasync.eachLimit.rejects();
-					return population.setFitnessesAsync()
-						.then(() => {
-							throw new Error('Promise should have rejected');
-						}, () => {});
-				});
-		});
-
-		describe('iteratee', function() {
-			let iteratee;
-
-			beforeEach(function() {
-				return population.setFitnessesAsync()
-					.then(() => {
-						iteratee = pasync.eachLimit.firstCall.args[2];
-					});
-			});
-
-			it('resolves after invoking individual#setFitness', function() {
-				let [ foo ] = individuals;
-				sinon.stub(foo, 'setFitnessAsync').resolves();
-
-				return iteratee(foo)
-					.then(() => {
-						expect(foo.setFitnessAsync).to.be.calledOnce;
-						expect(foo.setFitnessAsync).to.be.calledOn(foo);
-
-						// Test rejection to ensure we aren't resolving early.
-						foo.setFitnessAsync.rejects();
-						return iteratee(foo)
-							.then(() => {
-								throw new Error('Promise should have rejected');
-							}, () => {});
-					});
-			});
-		});
-	});
-
-	describe('#getBest', function() {
-		it('returns individual with the highest fitness', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
-			let population = new Population([ foo, bar, baz ]);
-			foo.fitness = 8;
-			bar.fitness = 10;
-			baz.fitness = 9;
-
-			expect(population.getBest()).to.equal(bar);
 		});
 	});
 });
