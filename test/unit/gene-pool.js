@@ -358,22 +358,26 @@ describe('GenePool', function() {
 	describe('#performSelectionsSync', function() {
 		it('returns breeding scheme from selection results', function() {
 			let selector = new Selector();
-			let pool = new GenePool(selector, 4, 2, { parentCount: 2 });
+			let pool = new GenePool(selector, 2, 1, {
+				parentCount: 2,
+				childCount: 3
+			});
 			let individuals = _.times(6, (i) => new TestIndividual(i));
-			sinon.stub(pool, 'getSelectionCount').returns(6);
+			sinon.stub(pool, 'getSelectionCount').returns(7);
 			sinon.stub(selector, 'select')
 				.onCall(0).returns(individuals[0])
 				.onCall(1).returns(individuals[1])
 				.onCall(2).returns(individuals[2])
 				.onCall(3).returns(individuals[3])
 				.onCall(4).returns(individuals[4])
-				.onCall(5).returns(individuals[5]);
+				.onCall(5).returns(individuals[5])
+				.onCall(6).returns(individuals[6]);
 
 			let result = pool.performSelectionsSync();
 
 			expect(pool.getSelectionCount).to.be.calledOnce;
 			expect(pool.getSelectionCount).to.be.calledOn(pool);
-			expect(selector.select).to.have.callCount(6);
+			expect(selector.select).to.have.callCount(7);
 			expect(selector.select).to.always.be.calledOn(selector);
 			expect(result).to.be.an.instanceof(BreedingScheme);
 			expect(result.crossovers).to.deep.equal([
@@ -382,7 +386,8 @@ describe('GenePool', function() {
 			]);
 			expect(result.copies).to.deep.equal([
 				individuals[4],
-				individuals[5]
+				individuals[5],
+				individuals[6]
 			]);
 			expect(result.settings).to.equal(pool.settings);
 		});
@@ -393,13 +398,14 @@ describe('GenePool', function() {
 
 		beforeEach(function() {
 			selector = new Selector();
-			pool = new GenePool(selector, 4, 2, {
+			pool = new GenePool(selector, 2, 1, {
 				parentCount: 2,
+				childCount: 3,
 				async: { selection: 4 }
 			});
-			individuals = _.times(6, (i) => new TestIndividual(i));
+			individuals = _.times(7, (i) => new TestIndividual(i));
 
-			sinon.stub(pool, 'getSelectionCount').returns(6);
+			sinon.stub(pool, 'getSelectionCount').returns(7);
 			sandbox.stub(pasync, 'timesLimit').resolves(individuals);
 		});
 
@@ -411,7 +417,7 @@ describe('GenePool', function() {
 					expect(pasync.timesLimit).to.be.calledOnce;
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
 					expect(pasync.timesLimit).to.be.calledWith(
-						6,
+						7,
 						pool.settings.async.selection,
 						sinon.match.func
 					);
@@ -422,7 +428,8 @@ describe('GenePool', function() {
 					]);
 					expect(result.copies).to.deep.equal([
 						individuals[4],
-						individuals[5]
+						individuals[5],
+						individuals[6]
 					]);
 					expect(result.settings).to.equal(pool.settings);
 				});
