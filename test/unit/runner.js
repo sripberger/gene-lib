@@ -1,11 +1,12 @@
 const Runner = require('../../lib/runner');
 const sinon = require('sinon');
 const pasync = require('pasync');
+const BreedingScheme = require('../../lib/breeding-scheme');
 const GenePool = require('../../lib/gene-pool');
 const Population = require('../../lib/population');
 const TestIndividual = require('../lib/test-individual');
 
-describe.skip('Runner', function() {
+describe('Runner', function() {
 	let sandbox;
 
 	beforeEach(function() {
@@ -34,44 +35,80 @@ describe.skip('Runner', function() {
 		expect(runner.settings).to.deep.equal({});
 	});
 
-	describe('::create', function() {
-		it('creates a runner based on provided settings object', function() {
+	describe('::createSync', function() {
+		it('synchronously creates a runner based on provided settings object', function() {
 			let settings = {
 				generationSize: 100,
 				createChromosome: () => {},
-				createArg: 'chromosome factory argument',
-				createConcurrency: 4,
-				fitnessConcurrency: 2,
+				createArg: 'create argument',
 			};
 			let population = new Population();
-			sandbox.stub(Population, 'create').resolves(population);
-			sinon.stub(population, 'setFitnesses').resolves();
+			sandbox.stub(Population, 'createSync').returns(population);
+			sinon.stub(population, 'setFitnessesSync').returns(population);
 
-			return Runner.create(settings)
+			let result = Runner.createSync(settings);
+
+			expect(Population.createSync).to.be.calledOnce;
+			expect(Population.createSync).to.be.calledOn(Population);
+			expect(Population.createSync).to.be.calledWith(settings);
+			expect(population.setFitnessesSync).to.be.calledOnce;
+			expect(population.setFitnessesSync).to.be.calledOn(population);
+			expect(result).to.be.an.instanceof(Runner);
+			expect(result.population).to.equal(population);
+			expect(result.settings).to.equal(settings);
+		});
+	});
+
+	describe('::createAsync', function() {
+		let settings, population;
+
+		beforeEach(function() {
+			settings = {
+				generationSize: 100,
+				createChromosome: () => {},
+				createArg: 'create argument',
+			};
+			population = new Population();
+			sandbox.stub(Population, 'create').resolves(population);
+			sinon.stub(population, 'setFitnesses').resolves(population);
+		});
+
+		it('asynchronously creates a runner based on provided settings object', function() {
+			return Runner.createAsync(settings)
 				.then((result) => {
 					expect(Population.create).to.be.calledOnce;
 					expect(Population.create).to.be.calledOn(Population);
-					expect(Population.create).to.be.calledWith(
-						settings.generationSize,
-						settings.createChromosome,
-						settings.createArg,
-						settings.createConcurrency
-					);
+					expect(Population.create).to.be.calledWith(settings);
 					expect(population.setFitnesses).to.be.calledOnce;
 					expect(population.setFitnesses).to.be.calledOn(population);
-					expect(population.setFitnesses).to.be.calledWith(
-						settings.fitnessConcurrency
-					);
 					expect(result).to.be.an.instanceof(Runner);
 					expect(result.population).to.equal(population);
 					expect(result.settings).to.equal(settings);
-
+				})
+				.then(() => {
 					// Test rejection to ensure we aren't resolving early.
 					population.setFitnesses.rejects();
-					return Runner.create(settings)
+					return Runner.createAsync(settings)
 						.then(() => {
 							throw new Error('Promise should have rejected.');
 						}, () => {});
+				});
+		});
+
+		it('supports synchronous component operations', function() {
+			Population.create.returns(population);
+			population.setFitnesses.returns(population);
+
+			return Runner.createAsync(settings)
+				.then((result) => {
+					expect(Population.create).to.be.calledOnce;
+					expect(Population.create).to.be.calledOn(Population);
+					expect(Population.create).to.be.calledWith(settings);
+					expect(population.setFitnesses).to.be.calledOnce;
+					expect(population.setFitnesses).to.be.calledOn(population);
+					expect(result).to.be.an.instanceof(Runner);
+					expect(result.population).to.equal(population);
+					expect(result.settings).to.equal(settings);
 				});
 		});
 	});
@@ -85,118 +122,24 @@ describe.skip('Runner', function() {
 			best = new TestIndividual('best');
 
 			sinon.stub(population, 'getBest').returns(best);
-			sinon.stub(best, 'isSolution').resolves(false);
 		});
 
-		it('checks if the best chromosome is a solution', function() {
-			return runner.checkForSolution()
-				.then(() => {
-					expect(population.getBest).to.be.calledOnce;
-					expect(population.getBest).to.be.calledOn(population);
-					expect(best.isSolution).to.be.calledOnce;
-					expect(best.isSolution).to.be.calledOn(best);
-					expect(runner.solution).to.be.null;
-				});
+		it('gets best individual and stores it on solution poperty, if its fitness is Infinity', function() {
+			best.fitness = Infinity;
+
+			runner.checkForSolution();
+
+			expect(population.getBest).to.be.calledOnce;
+			expect(population.getBest).to.be.calledOn(population);
+			expect(runner.solution).to.equal(best);
 		});
 
-		it('sets solution property to best if it is a solution', function() {
-			best.isSolution.resolves(true);
+		it('does not set solution property otherwise', function() {
+			best.fitness = 100;
 
-			return runner.checkForSolution()
-				.then(() => {
-					expect(runner.solution).to.equal(best);
-				});
-		});
-	});
+			runner.checkForSolution();
 
-	describe('#runGeneration', function() {
-		it('runs a single generation', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let baz = new TestIndividual('baz');
-			let qux = new TestIndividual('qux');
-
-			let population = new Population([ foo, bar ]);
-			let settings = { generationSize: 100 };
-			let runner = new Runner(population, settings);
-			let genePool = new GenePool();
-			let offspring = new Population([ baz, qux ]);
-			runner.generationCount = 2;
-			sandbox.stub(GenePool, 'fromPopulation').resolves(genePool);
-			sinon.stub(genePool, 'getOffspring').resolves(offspring);
-
-			return runner.runGeneration()
-				.then(() => {
-					expect(GenePool.fromPopulation).to.be.calledOnce;
-					expect(GenePool.fromPopulation).to.be.calledOn(GenePool);
-					expect(GenePool.fromPopulation).to.be.calledWith(
-						population,
-						settings
-					);
-					expect(genePool.getOffspring).to.be.calledOnce;
-					expect(genePool.getOffspring).to.be.calledOn(genePool);
-					expect(runner.population).to.equal(offspring);
-					expect(runner.generationCount).to.equal(3);
-
-					// Test rejection to ensure we aren't resolving early.
-					genePool.getOffspring.rejects();
-					return runner.runGeneration()
-						.then(() => {
-							throw new Error('Promise should have rejected.');
-						}, () => {});
-				});
-		});
-	});
-
-	describe('#runStep', function() {
-		let runner;
-
-		beforeEach(function() {
-			runner = new Runner();
-
-			sinon.stub(runner, 'checkForSolution').resolves();
-			sinon.stub(runner, 'runGeneration').resolves();
-		});
-
-		it('checks for solution, then runs a generation', function() {
-			return runner.runStep()
-				.then(() => {
-					expect(runner.checkForSolution).to.be.calledOnce;
-					expect(runner.checkForSolution).to.be.calledOn(runner);
-					expect(runner.runGeneration).to.be.calledOnce;
-					expect(runner.runGeneration).to.be.calledOn(runner);
-				})
-				.then(() => {
-					// Test #checkForSolution rejection to ensure correct order.
-					runner.checkForSolution.rejects();
-					runner.runGeneration.resetHistory();
-					return runner.runStep()
-						.then(() => {
-							throw new Error('Promise should have rejected.');
-						}, () => {
-							expect(runner.runGeneration).to.not.be.called;
-						});
-				})
-				.then(() => {
-					// Test #runGeneration rejection to ensure we aren't resolving early.
-					runner.runGeneration.rejects();
-					return runner.runStep()
-						.then(() => {
-							throw new Error('Promise should have rejected.');
-						}, () => {});
-				});
-		});
-
-		it('skips running generation if solution is already found', function() {
-			runner.checkForSolution.callsFake(() => {
-				runner.solution = new TestIndividual('solution');
-				return Promise.resolve();
-			});
-
-			return runner.runStep()
-				.then(() => {
-					expect(runner.runGeneration).to.not.be.called;
-				});
+			expect(runner.solution).to.be.null;
 		});
 	});
 
@@ -226,7 +169,240 @@ describe.skip('Runner', function() {
 		});
 	});
 
-	describe('#run', function() {
+	describe('#runGenerationSync', function() {
+		it('synchronously runs a single generation', function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let fooBar = new TestIndividual('foo-bar');
+			let barFoo = new TestIndividual('bar-foo');
+			let fooBarPrime = new TestIndividual('foo-bar-prime');
+			let barFooPrime = new TestIndividual('bar-foo-prime');
+			let population = new Population([ foo, bar ]);
+			let runner = new Runner(population);
+			let pool = new GenePool();
+			let scheme = new BreedingScheme();
+			let offspring = new Population([ fooBar, barFoo ]);
+			let mutants = new Population([ fooBarPrime, barFooPrime ]);
+			sandbox.stub(GenePool, 'fromPopulationSync').returns(pool);
+			sinon.stub(pool, 'performSelectionsSync').returns(scheme);
+			sinon.stub(scheme, 'performCrossoversSync').returns(offspring);
+			sinon.stub(offspring, 'mutateSync').returns(mutants);
+			sinon.stub(mutants, 'setFitnessesSync').returns(mutants);
+			runner.generationCount = 2;
+
+			runner.runGenerationSync();
+
+			expect(GenePool.fromPopulationSync).to.be.calledOnce;
+			expect(GenePool.fromPopulationSync).to.be.calledOn(GenePool);
+			expect(GenePool.fromPopulationSync).to.be.calledWith(population);
+			expect(pool.performSelectionsSync).to.be.calledOnce;
+			expect(pool.performSelectionsSync).to.be.calledOn(pool);
+			expect(scheme.performCrossoversSync).to.be.calledOnce;
+			expect(scheme.performCrossoversSync).to.be.calledOn(scheme);
+			expect(offspring.mutateSync).to.be.calledOnce;
+			expect(offspring.mutateSync).to.be.calledOn(offspring);
+			expect(mutants.setFitnessesSync).to.be.calledOnce;
+			expect(mutants.setFitnessesSync).to.be.calledOn(mutants);
+			expect(runner.population).to.equal(mutants);
+			expect(runner.generationCount).to.equal(3);
+		});
+	});
+
+	describe('#runGenerationAsync', function() {
+		let population, runner, pool, scheme, offspring, mutants;
+
+		beforeEach(function() {
+			let foo = new TestIndividual('foo');
+			let bar = new TestIndividual('bar');
+			let fooBar = new TestIndividual('foo-bar');
+			let barFoo = new TestIndividual('bar-foo');
+			let fooBarPrime = new TestIndividual('foo-bar-prime');
+			let barFooPrime = new TestIndividual('bar-foo-prime');
+
+			population = new Population([ foo, bar ]);
+			runner = new Runner(population);
+			pool = new GenePool();
+			scheme = new BreedingScheme();
+			offspring = new Population([ fooBar, barFoo ]);
+			mutants = new Population([ fooBarPrime, barFooPrime ]);
+
+			sandbox.stub(GenePool, 'fromPopulation').resolves(pool);
+			sinon.stub(pool, 'performSelections').resolves(scheme);
+			sinon.stub(scheme, 'performCrossovers').resolves(offspring);
+			sinon.stub(offspring, 'mutate').resolves(mutants);
+			sinon.stub(mutants, 'setFitnesses').resolves(mutants);
+
+			runner.generationCount = 2;
+		});
+
+		it('asynchronously runs a single generation', function() {
+			return runner.runGenerationAsync()
+				.then(() => {
+					expect(GenePool.fromPopulation).to.be.calledOnce;
+					expect(GenePool.fromPopulation).to.be.calledOn(GenePool);
+					expect(GenePool.fromPopulation).to.be.calledWith(population);
+					expect(pool.performSelections).to.be.calledOnce;
+					expect(pool.performSelections).to.be.calledOn(pool);
+					expect(scheme.performCrossovers).to.be.calledOnce;
+					expect(scheme.performCrossovers).to.be.calledOn(scheme);
+					expect(offspring.mutate).to.be.calledOnce;
+					expect(offspring.mutate).to.be.calledOn(offspring);
+					expect(mutants.setFitnesses).to.be.calledOnce;
+					expect(mutants.setFitnesses).to.be.calledOn(mutants);
+					expect(runner.population).to.equal(mutants);
+					expect(runner.generationCount).to.equal(3);
+				})
+				.then(() => {
+					// Test rejection to ensure we aren't resolving early.
+					mutants.setFitnesses.rejects();
+					return runner.runGenerationAsync()
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
+				});
+		});
+
+		it('supports synchronous component operations', function() {
+			GenePool.fromPopulation.returns(pool);
+			pool.performSelections.returns(scheme);
+			scheme.performCrossovers.returns(offspring);
+			offspring.mutate.returns(mutants);
+			mutants.setFitnesses.returns(mutants);
+
+			return runner.runGenerationAsync()
+				.then(() => {
+					expect(GenePool.fromPopulation).to.be.calledOnce;
+					expect(GenePool.fromPopulation).to.be.calledOn(GenePool);
+					expect(GenePool.fromPopulation).to.be.calledWith(population);
+					expect(pool.performSelections).to.be.calledOnce;
+					expect(pool.performSelections).to.be.calledOn(pool);
+					expect(scheme.performCrossovers).to.be.calledOnce;
+					expect(scheme.performCrossovers).to.be.calledOn(scheme);
+					expect(offspring.mutate).to.be.calledOnce;
+					expect(offspring.mutate).to.be.calledOn(offspring);
+					expect(mutants.setFitnesses).to.be.calledOnce;
+					expect(mutants.setFitnesses).to.be.calledOn(mutants);
+					expect(runner.population).to.equal(mutants);
+					expect(runner.generationCount).to.equal(3);
+				});
+		});
+	});
+
+	describe('#runStepSync', function() {
+		let runner;
+
+		beforeEach(function() {
+			runner = new Runner();
+			sinon.stub(runner, 'checkForSolution');
+			sinon.stub(runner, 'runGenerationSync');
+		});
+
+		it('checks for solution, then synchronously runs a generation', function() {
+			runner.runStepSync();
+
+			expect(runner.checkForSolution).to.be.calledOnce;
+			expect(runner.checkForSolution).to.be.calledOn(runner);
+			expect(runner.runGenerationSync).to.be.calledOnce;
+			expect(runner.runGenerationSync).to.be.calledOn(runner);
+			expect(runner.runGenerationSync).to.be.calledAfter(
+				runner.checkForSolution
+			);
+		});
+
+		it('skips running generation if solution is found', function() {
+			runner.checkForSolution.callsFake(() => {
+				runner.solution = new TestIndividual('solution');
+			});
+
+			runner.runStepSync();
+
+			expect(runner.runGenerationSync).to.not.be.called;
+		});
+	});
+
+	describe('#runStepAsync', function() {
+		let runner;
+
+		beforeEach(function() {
+			runner = new Runner();
+
+			sinon.stub(runner, 'checkForSolution');
+			sinon.stub(runner, 'runGenerationAsync').resolves();
+		});
+
+		it('checks for solution, then runs a generation', function() {
+			return runner.runStepAsync()
+				.then(() => {
+					expect(runner.checkForSolution).to.be.calledOnce;
+					expect(runner.checkForSolution).to.be.calledOn(runner);
+					expect(runner.runGenerationAsync).to.be.calledOnce;
+					expect(runner.runGenerationAsync).to.be.calledOn(runner);
+					expect(runner.runGenerationAsync).to.be.calledAfter(
+						runner.checkForSolution
+					);
+				})
+				.then(() => {
+					// Test rejection to ensure we aren't resolving early.
+					runner.runGenerationAsync.rejects();
+					return runner.runStepAsync()
+						.then(() => {
+							throw new Error('Promise should have rejected.');
+						}, () => {});
+				});
+		});
+
+		it('skips running generation if solution is already found', function() {
+			runner.checkForSolution.callsFake(() => {
+				runner.solution = new TestIndividual('solution');
+			});
+
+			return runner.runStepAsync()
+				.then(() => {
+					expect(runner.runGenerationAsync).to.not.be.called;
+				});
+		});
+	});
+
+	describe('#runSync', function() {
+		let runner, best;
+
+		beforeEach(function() {
+			runner = new Runner(new Population, { generationLimit: 3 });
+			best = new TestIndividual('best');
+
+			sinon.stub(runner, 'runStepSync').callsFake(() => {
+				runner.generationCount += 1;
+			});
+			sinon.stub(runner, 'getBest').returns(best);
+		});
+
+		it('returns best individual after reaching generationLimit', function() {
+			let result = runner.runSync();
+
+			expect(runner.runStepSync).to.be.calledThrice;
+			expect(runner.runStepSync).to.always.be.calledOn(runner);
+			expect(runner.getBest).to.be.calledOnce;
+			expect(runner.getBest).to.be.calledOn(runner);
+			expect(result).to.equal(best);
+		});
+
+		it('returns best individual after finding solution', function() {
+			runner.runStepSync.onSecondCall().callsFake(() => {
+				runner.generationCount += 1;
+				runner.solution = new TestIndividual('solution');
+			});
+
+			let result = runner.runSync();
+
+			expect(runner.runStepSync).to.be.calledTwice;
+			expect(runner.runStepSync).to.always.be.calledOn(runner);
+			expect(runner.getBest).to.be.calledOnce;
+			expect(runner.getBest).to.be.calledOn(runner);
+			expect(result).to.equal(best);
+		});
+	});
+
+	describe('#runAsync', function() {
 		let runner, best;
 
 		beforeEach(function() {
@@ -238,7 +414,7 @@ describe.skip('Runner', function() {
 		});
 
 		it('resolves with best individual after pasync::whilst', function() {
-			return runner.run()
+			return runner.runAsync()
 				.then((result) => {
 					expect(pasync.whilst).to.be.calledOnce;
 					expect(pasync.whilst).to.be.calledOn(pasync);
@@ -253,7 +429,7 @@ describe.skip('Runner', function() {
 				.then(() => {
 					// Test rejection to ensure we aren't resolving early.
 					pasync.whilst.rejects();
-					return runner.run()
+					return runner.runAsync()
 						.then(() => {
 							throw new Error('Promise should have rejected.');
 						}, () => {});
@@ -264,7 +440,7 @@ describe.skip('Runner', function() {
 			let test;
 
 			beforeEach(function() {
-				return runner.run()
+				return runner.runAsync()
 					.then(() => {
 						test = pasync.whilst.firstCall.args[0];
 					});
@@ -299,23 +475,23 @@ describe.skip('Runner', function() {
 			let iteratee;
 
 			beforeEach(function() {
-				return runner.run()
+				return runner.runAsync()
 					.then(() => {
 						iteratee = pasync.whilst.firstCall.args[1];
 					});
 			});
 
-			it('resolves after #runStep', function() {
-				sinon.stub(runner, 'runStep').resolves();
+			it('resolves after #runStepAsync', function() {
+				sinon.stub(runner, 'runStepAsync').resolves();
 
 				return iteratee()
 					.then(() => {
-						expect(runner.runStep).to.be.calledOnce;
-						expect(runner.runStep).to.be.calledOn(runner);
+						expect(runner.runStepAsync).to.be.calledOnce;
+						expect(runner.runStepAsync).to.be.calledOn(runner);
 					})
 					.then(() => {
 						// Test rejection to ensure we aren't resolving early.
-						runner.runStep.rejects();
+						runner.runStepAsync.rejects();
 						return iteratee()
 							.then(() => {
 								throw new Error('Promise should have rejected.');

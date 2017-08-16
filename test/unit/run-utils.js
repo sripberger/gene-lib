@@ -6,7 +6,7 @@ const TournamentSelector = require('../../lib/tournament-selector');
 const TestChromosome = require('../lib/test-chromosome');
 const TestIndividual = require('../lib/test-individual');
 
-describe('runUtils', function() {
+describe.skip('runUtils', function() {
 	let sandbox;
 
 	beforeEach(function() {
