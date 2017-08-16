@@ -21,14 +21,14 @@ describe('Individual', function() {
 		expect(individual.chromosome).to.equal(chromosome);
 	});
 
-	describe('::create', function() {
+	describe('::createSync', function() {
 		it('returns chromosome from factory as new individual', function() {
 			let factoryArg = 'factory argument';
 			let chromosome = new TestChromosome('chromosome');
 			let chromosomeFactory = sinon.stub();
 			chromosomeFactory.returns(chromosome);
 
-			let result = Individual.create(chromosomeFactory, factoryArg);
+			let result = Individual.createSync(chromosomeFactory, factoryArg);
 
 			expect(chromosomeFactory).to.be.calledOnce;
 			expect(chromosomeFactory).to.be.calledWith(factoryArg);
@@ -54,13 +54,13 @@ describe('Individual', function() {
 		});
 	});
 
-	describe('#setFitness', function() {
+	describe('#setFitnessSync', function() {
 		it('sets fitness property to result of chromosome#getFitness', function() {
 			let chromosome = new TestChromosome('chromosome');
 			let individual = new Individual(chromosome);
 			sinon.stub(chromosome, 'getFitness').returns(42);
 
-			individual.setFitness();
+			individual.setFitnessSync();
 
 			expect(chromosome.getFitness).to.be.calledOnce;
 			expect(chromosome.getFitness).to.be.calledOn(chromosome);
@@ -100,7 +100,7 @@ describe('Individual', function() {
 		});
 	});
 
-	describe('#crossover', function() {
+	describe('#crossoverSync', function() {
 		const rate = '0.2';
 		let foo, bar, baz, fooBar, barFoo, fooIndividual, barIndividual, bazIndividual;
 
@@ -118,7 +118,7 @@ describe('Individual', function() {
 		});
 
 		it('returns chromosome#crossover results as new individuals', function() {
-			let result = fooIndividual.crossover([ barIndividual ], rate);
+			let result = fooIndividual.crossoverSync([ barIndividual ], rate);
 
 			expect(foo.crossover).to.be.calledOnce;
 			expect(foo.crossover).to.be.calledOn(foo);
@@ -132,7 +132,7 @@ describe('Individual', function() {
 		});
 
 		it('supports more than two parents', function() {
-			let result = fooIndividual.crossover(
+			let result = fooIndividual.crossoverSync(
 				[ barIndividual, bazIndividual ],
 				rate
 			);
@@ -151,7 +151,7 @@ describe('Individual', function() {
 		it('supports single-result chromosome#crossover', function() {
 			foo.crossover.returns(fooBar);
 
-			let result = fooIndividual.crossover([ barIndividual ], rate);
+			let result = fooIndividual.crossoverSync([ barIndividual ], rate);
 
 			expect(result).to.be.an.instanceof(Array);
 			expect(result).to.have.length(1);
@@ -223,7 +223,7 @@ describe('Individual', function() {
 		});
 	});
 
-	describe('#mutate', function() {
+	describe('#mutateSync', function() {
 		it('returns result of chromosome#mutate as new individual', function() {
 			let rate = '0.01';
 			let foo = new TestChromosome('foo');
@@ -231,7 +231,7 @@ describe('Individual', function() {
 			let fooIndividual = new Individual(foo);
 			sinon.stub(foo, 'mutate').returns(fooPrime);
 
-			let result =  fooIndividual.mutate(rate);
+			let result =  fooIndividual.mutateSync(rate);
 
 			expect(foo.mutate).to.be.calledOnce;
 			expect(foo.mutate).to.be.calledOn(foo);

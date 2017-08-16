@@ -35,7 +35,7 @@ describe('Population', function() {
 	});
 
 	describe('::createSync', function() {
-		it('creates population using Individual::create', function() {
+		it('creates population using Individual::createSync', function() {
 			let foo = new TestIndividual('foo');
 			let bar = new TestIndividual('bar');
 			let settings = {
@@ -43,15 +43,15 @@ describe('Population', function() {
 				createChromosome: () => {},
 				createArg: 'create argument'
 			};
-			sandbox.stub(Individual, 'create')
+			sandbox.stub(Individual, 'createSync')
 				.onFirstCall().returns(foo)
 				.onSecondCall().returns(bar);
 
 			let result = Population.createSync(settings);
 
-			expect(Individual.create).to.be.calledTwice;
-			expect(Individual.create).to.always.be.calledOn(Individual);
-			expect(Individual.create).to.always.be.calledWith(
+			expect(Individual.createSync).to.be.calledTwice;
+			expect(Individual.createSync).to.always.be.calledOn(Individual);
+			expect(Individual.createSync).to.always.be.calledWith(
 				settings.createChromosome,
 				settings.createArg
 			);
@@ -180,17 +180,17 @@ describe('Population', function() {
 			let barPrime = new TestIndividual('bar-prime');
 			let settings = { mutationRate: 0.01 };
 			let population = new Population([ foo, bar ], settings);
-			sinon.stub(foo, 'mutate').returns(fooPrime);
-			sinon.stub(bar, 'mutate').returns(barPrime);
+			sinon.stub(foo, 'mutateSync').returns(fooPrime);
+			sinon.stub(bar, 'mutateSync').returns(barPrime);
 
 			let result = population.mutateSync();
 
-			expect(foo.mutate).to.be.calledOnce;
-			expect(foo.mutate).to.be.calledOn(foo);
-			expect(foo.mutate).to.be.calledWith(settings.mutationRate);
-			expect(bar.mutate).to.be.calledOnce;
-			expect(bar.mutate).to.be.calledOn(bar);
-			expect(bar.mutate).to.be.calledWith(settings.mutationRate);
+			expect(foo.mutateSync).to.be.calledOnce;
+			expect(foo.mutateSync).to.be.calledOn(foo);
+			expect(foo.mutateSync).to.be.calledWith(settings.mutationRate);
+			expect(bar.mutateSync).to.be.calledOnce;
+			expect(bar.mutateSync).to.be.calledOn(bar);
+			expect(bar.mutateSync).to.be.calledWith(settings.mutationRate);
 			expect(result).to.be.an.instanceof(Population);
 			expect(result.individuals).to.deep.equal([ fooPrime, barPrime ]);
 			expect(result.settings).to.equal(settings);
@@ -315,15 +315,15 @@ describe('Population', function() {
 			let foo = new TestIndividual('foo');
 			let bar = new TestIndividual('bar');
 			let population = new Population([ foo, bar ]);
-			sinon.stub(foo, 'setFitness');
-			sinon.stub(bar, 'setFitness');
+			sinon.stub(foo, 'setFitnessSync');
+			sinon.stub(bar, 'setFitnessSync');
 
 			population.setFitnessesSync();
 
-			expect(foo.setFitness).to.be.calledOnce;
-			expect(foo.setFitness).to.be.calledOn(foo);
-			expect(bar.setFitness).to.be.calledOnce;
-			expect(bar.setFitness).to.be.calledOn(bar);
+			expect(foo.setFitnessSync).to.be.calledOnce;
+			expect(foo.setFitnessSync).to.be.calledOn(foo);
+			expect(bar.setFitnessSync).to.be.calledOnce;
+			expect(bar.setFitnessSync).to.be.calledOn(bar);
 		});
 	});
 

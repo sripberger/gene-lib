@@ -98,26 +98,26 @@ describe('BreedingScheme', function() {
 			let scheme = new BreedingScheme(crossovers, copies, {
 				crossoverRate: 0.3
 			});
-			sinon.stub(individuals[0], 'crossover').returns([
+			sinon.stub(individuals[0], 'crossoverSync').returns([
 				individuals[8],
 				individuals[9]
 			]);
-			sinon.stub(individuals[3], 'crossover').returns([
+			sinon.stub(individuals[3], 'crossoverSync').returns([
 				individuals[10],
 				individuals[11]
 			]);
 
 			let result = scheme.performCrossoversSync();
 
-			expect(individuals[0].crossover).to.be.calledOnce;
-			expect(individuals[0].crossover).to.be.calledOn(individuals[0]);
-			expect(individuals[0].crossover).to.be.calledWith(
+			expect(individuals[0].crossoverSync).to.be.calledOnce;
+			expect(individuals[0].crossoverSync).to.be.calledOn(individuals[0]);
+			expect(individuals[0].crossoverSync).to.be.calledWith(
 				[ individuals[1], individuals[2] ],
 				scheme.settings.crossoverRate
 			);
-			expect(individuals[3].crossover).to.be.calledOnce;
-			expect(individuals[3].crossover).to.be.calledOn(individuals[3]);
-			expect(individuals[3].crossover).to.be.calledWith(
+			expect(individuals[3].crossoverSync).to.be.calledOnce;
+			expect(individuals[3].crossoverSync).to.be.calledOn(individuals[3]);
+			expect(individuals[3].crossoverSync).to.be.calledWith(
 				[ individuals[4], individuals[5] ],
 				scheme.settings.crossoverRate
 			);
