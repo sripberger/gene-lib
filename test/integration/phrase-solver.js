@@ -63,12 +63,12 @@ describe('Phrase Solver', function() {
 			createArg: target,
 			selectorClass: AsyncSelector,
 			async: {
-				creation: 1,
-				add: 1,
-				selection: 1,
+				create: 1,
+				calculateFitness: 1,
 				crossover: 1,
-				mutation: 1,
-				fitness: 1
+				mutate: 1,
+				add: 1,
+				select: 1
 			}
 		})
 			.then((result) => {

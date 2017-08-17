@@ -55,7 +55,7 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.creation is not set', function() {
+		context('settings.async.create is not set', function() {
 			it('returns result of ::createSync', function() {
 				settings.async = {};
 
@@ -68,9 +68,9 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.creation is set', function() {
+		context('settings.async.create is set', function() {
 			it('resolves with result of ::createAsync', function() {
-				settings.async = { creation: 1 };
+				settings.async = { create: 1 };
 
 				return Population.create(settings)
 					.then((result) => {
@@ -122,7 +122,7 @@ describe('Population', function() {
 				generationSize: 2,
 				createChromosome: () => {},
 				createArg: 'create argument',
-				async: { creation: 4 }
+				async: { create: 4 }
 			};
 
 			sandbox.stub(pasync, 'timesLimit').resolves(individuals);
@@ -135,7 +135,7 @@ describe('Population', function() {
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
 					expect(pasync.timesLimit).to.be.calledWith(
 						settings.generationSize,
-						settings.async.creation,
+						settings.async.create,
 						sinon.match.func
 					);
 					expect(result).to.be.an.instanceof(Population);
@@ -218,9 +218,9 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.fitness is set', function() {
+		context('settings.async.calculateFitness is set', function() {
 			it('resolves with instance after invoking #setFitnessesAsync', function() {
-				settings.async = { fitness: 1 };
+				settings.async = { calculateFitness: 1 };
 
 				return population.setFitnesses()
 					.then((result) => {
@@ -267,7 +267,7 @@ describe('Population', function() {
 			let bar = new TestIndividual('bar');
 
 			individuals = [ foo, bar ];
-			settings = { async: { fitness: 4 } };
+			settings = { async: { calculateFitness: 4 } };
 			population = new Population(individuals, settings);
 
 			sandbox.stub(pasync, 'eachLimit').resolves();
@@ -280,7 +280,7 @@ describe('Population', function() {
 					expect(pasync.eachLimit).to.be.calledOn(pasync);
 					expect(pasync.eachLimit).to.be.calledWith(
 						individuals,
-						settings.async.fitness,
+						settings.async.calculateFitness,
 						sinon.match.func
 					);
 					expect(result).to.equal(population);
@@ -345,7 +345,7 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.mutation is not set', function() {
+		context('settings.async.mutate is not set', function() {
 			it('returns result of #mutateSync', function() {
 				settings.async = {};
 
@@ -357,9 +357,9 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.mutation is set', function() {
+		context('settings.async.mutate is set', function() {
 			it('resolves with result of #mutateAsync', function() {
-				settings.async = { mutation: 1 };
+				settings.async = { mutate: 1 };
 
 				return population.mutate()
 					.then((result) => {
@@ -423,7 +423,7 @@ describe('Population', function() {
 			let barPrime = new TestIndividual('bar-prime');
 
 			individuals = [ foo, bar ];
-			settings = { mutationRate: 0.1, async: { mutation: 4 } };
+			settings = { mutationRate: 0.1, async: { mutate: 4 } };
 			population = new Population(individuals, settings);
 			mutants = [ fooPrime, barPrime ];
 
@@ -437,7 +437,7 @@ describe('Population', function() {
 					expect(pasync.mapLimit).to.be.calledOn(pasync);
 					expect(pasync.mapLimit).to.be.calledWith(
 						individuals,
-						settings.async.mutation,
+						settings.async.mutate,
 						sinon.match.func
 					);
 					expect(result).to.be.an.instanceof(Population);

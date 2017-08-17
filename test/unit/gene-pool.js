@@ -329,7 +329,7 @@ describe('GenePool', function() {
 			});
 		});
 
-		context('settings.async.selection is not set', function() {
+		context('settings.async.select is not set', function() {
 			it('returns result of ::fromPopulationSync', function() {
 				pool.settings.async = {};
 
@@ -341,9 +341,9 @@ describe('GenePool', function() {
 			});
 		});
 
-		context('settings.async.selection is set', function() {
+		context('settings.async.select is set', function() {
 			it('resolves with result of ::fromPopulationSync', function() {
-				pool.settings.async = { selection: 1 };
+				pool.settings.async = { select: 1 };
 
 				return pool.performSelections()
 					.then((result) => {
@@ -401,7 +401,7 @@ describe('GenePool', function() {
 			pool = new GenePool(selector, 2, 1, {
 				parentCount: 2,
 				childCount: 3,
-				async: { selection: 4 }
+				async: { select: 4 }
 			});
 			individuals = _.times(7, (i) => new TestIndividual(i));
 
@@ -418,7 +418,7 @@ describe('GenePool', function() {
 					expect(pasync.timesLimit).to.be.calledOn(pasync);
 					expect(pasync.timesLimit).to.be.calledWith(
 						7,
-						pool.settings.async.selection,
+						pool.settings.async.select,
 						sinon.match.func
 					);
 					expect(result).to.be.an.instanceof(BreedingScheme);
