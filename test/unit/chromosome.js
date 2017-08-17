@@ -40,7 +40,7 @@ describe('Chromosome', function() {
 			expect(result).to.equal(42);
 		});
 
-		it('caches nonzero result', function() {
+		it('caches nonzero numeric result', function() {
 			chromosome.getFitness();
 			chromosome.calculateFitness.resetHistory();
 
@@ -59,6 +59,18 @@ describe('Chromosome', function() {
 
 			expect(chromosome.calculateFitness).to.not.be.called;
 			expect(result).to.equal(0);
+		});
+
+		it('caches promise result', function() {
+			chromosome.calculateFitness.resolves(42);
+			chromosome.getFitness();
+			chromosome.calculateFitness.resetHistory();
+
+			return chromosome.getFitness()
+				.then((result) => {
+					expect(chromosome.calculateFitness).to.not.be.called;
+					expect(result).to.equal(42);
+				});
 		});
 	});
 
