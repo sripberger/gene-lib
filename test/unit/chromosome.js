@@ -1,5 +1,4 @@
 const Chromosome = require('../../lib/chromosome');
-const TestChromosome = require('../lib/test-chromosome');
 const sinon = require('sinon');
 const XError = require('xerror');
 
@@ -75,19 +74,24 @@ describe('Chromosome', function() {
 	});
 
 	describe('#crossover', function() {
-		it('returns unchanged parents', function() {
-			let foo = new TestChromosome('foo');
-			let bar = new TestChromosome('bar');
+		it('throws unsupported operation error', function() {
+			let chromosome = new Chromosome();
 
-			expect(foo.crossover(bar)).to.deep.equal([ foo, bar ]);
+			expect(() => chromosome.crossover())
+				.to.throw(XError)
+				.with.property('code')
+				.that.equals(XError.UNSUPPORTED_OPERATION);
 		});
 	});
 
 	describe('#mutate', function() {
-		it('returns unchanged instance', function() {
+		it('throws unsupported operation error', function() {
 			let chromosome = new Chromosome();
 
-			expect(chromosome.mutate()).to.equal(chromosome);
+			expect(() => chromosome.mutate())
+				.to.throw(XError)
+				.with.property('code')
+				.that.equals(XError.UNSUPPORTED_OPERATION);
 		});
 	});
 });
