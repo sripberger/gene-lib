@@ -14,7 +14,7 @@ class Phrase extends Chromosome {
 			let charIndex = Math.floor(Math.random() * alphabet.length);
 			return alphabet[charIndex];
 		});
-		return new Phrase(chars.join(''), target);
+		return new this(chars.join(''), target);
 	}
 
 	calculateFitness() {
@@ -41,7 +41,7 @@ class Phrase extends Chromosome {
 				resultChars.push(resultChar);
 			}
 		}
-		return new Phrase(resultChars.join(''), this.target);
+		return new this.constructor(resultChars.join(''), this.target);
 	}
 
 	crossover(other) {
@@ -58,8 +58,8 @@ class Phrase extends Chromosome {
 			}
 		}
 		return [
-			new Phrase(leftChars.join(''), this.target),
-			new Phrase(rightChars.join(''), this.target)
+			new this.constructor(leftChars.join(''), this.target),
+			new this.constructor(rightChars.join(''), this.target)
 		];
 	}
 }
