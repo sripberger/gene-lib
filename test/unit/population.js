@@ -374,16 +374,21 @@ describe('Population', function() {
 	});
 
 	describe('#mutateSync', function() {
-		it('maps individuals to a new population using Individual#mutate', function() {
-			let foo = new TestIndividual('foo');
-			let bar = new TestIndividual('bar');
-			let fooPrime = new TestIndividual('foo-prime');
-			let barPrime = new TestIndividual('bar-prime');
-			let settings = { mutationRate: 0.01 };
-			let population = new Population([ foo, bar ], settings);
+		let foo, bar, fooPrime, barPrime, settings, population;
+
+		beforeEach(function() {
+			foo = new TestIndividual('foo');
+			bar = new TestIndividual('bar');
+			fooPrime = new TestIndividual('foo-prime');
+			barPrime = new TestIndividual('bar-prime');
+			settings = { mutationRate: 0.01 };
+			population = new Population([ foo, bar ], settings);
+
 			sinon.stub(foo, 'mutateSync').returns(fooPrime);
 			sinon.stub(bar, 'mutateSync').returns(barPrime);
+		});
 
+		it('maps individuals to a new population using Individual#mutate', function() {
 			let result = population.mutateSync();
 
 			expect(foo.mutateSync).to.be.calledOnce;
@@ -395,6 +400,16 @@ describe('Population', function() {
 			expect(result).to.be.an.instanceof(Population);
 			expect(result.individuals).to.deep.equal([ fooPrime, barPrime ]);
 			expect(result.settings).to.equal(settings);
+		});
+
+		it('returns instance if mutation rate is zero', function() {
+			settings.mutationRate = 0;
+
+			let result = population.mutateSync();
+
+			expect(foo.mutateSync).to.not.be.called;
+			expect(bar.mutateSync).to.not.be.called;
+			expect(result).to.equal(population);
 		});
 	});
 
@@ -428,6 +443,16 @@ describe('Population', function() {
 					expect(result).to.be.an.instanceof(Population);
 					expect(result.individuals).to.equal(mutants);
 					expect(result.settings).to.equal(settings);
+				});
+		});
+
+		it('resolves with instance if mutation rate is zero', function() {
+			settings.mutationRate = 0;
+
+			return population.mutateAsync()
+				.then((result) => {
+					expect(pasync.mapLimit).to.not.be.called;
+					expect(result).to.equal(population);
 				});
 		});
 
