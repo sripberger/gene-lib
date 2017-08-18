@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "pasync": "^1.4.1",
+    "pasync": "^1.4.2",
     "xerror": "^1.1.2"
   }
 }
