@@ -218,9 +218,9 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.calculateFitness is set', function() {
+		context('settings.async.fitness is set', function() {
 			it('resolves with instance after invoking #setFitnessesAsync', function() {
-				settings.async = { calculateFitness: 1 };
+				settings.async = { fitness: 1 };
 
 				return population.setFitnesses()
 					.then((result) => {
@@ -267,7 +267,7 @@ describe('Population', function() {
 			let bar = new TestIndividual('bar');
 
 			individuals = [ foo, bar ];
-			settings = { async: { calculateFitness: 4 } };
+			settings = { async: { fitness: 4 } };
 			population = new Population(individuals, settings);
 
 			sandbox.stub(pasync, 'eachLimit').resolves();
@@ -280,7 +280,7 @@ describe('Population', function() {
 					expect(pasync.eachLimit).to.be.calledOn(pasync);
 					expect(pasync.eachLimit).to.be.calledWith(
 						individuals,
-						settings.async.calculateFitness,
+						settings.async.fitness,
 						sinon.match.func
 					);
 					expect(result).to.equal(population);
