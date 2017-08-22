@@ -15,11 +15,10 @@ describe('SelectorRegistry', function() {
 	});
 
 	describe('.defaultRegistry', function() {
-		it('is set to an empty instance', function() {
+		it('is set to an instance', function() {
 			let { defaultRegistry } = SelectorRegistry;
 
 			expect(defaultRegistry).to.be.an.instanceof(SelectorRegistry);
-			expect(defaultRegistry.classes).to.deep.equal({});
 		});
 
 		it('always returns the same instance', function() {
