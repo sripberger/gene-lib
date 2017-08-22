@@ -1,7 +1,6 @@
 const settingsUtils = require('../../lib/settings-utils');
 const sinon = require('sinon');
 const { defaultRegistry } = require('../../lib/selector-registry');
-const TournamentSelector = require('../../lib/tournament-selector');
 const TestSelector = require('../lib/test-selector');
 const TestChromosome = require('../lib/test-chromosome');
 
@@ -17,6 +16,47 @@ describe('settingsUtils', function() {
 		defaultRegistry.clear();
 		delete TestSelector.async;
 		delete TestChromosome.async;
+	});
+
+	describe('::applyDefaults', function() {
+		it('applies default settings', function() {
+			let result = settingsUtils.applyDefaults({ foo: 'bar' });
+
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				generationLimit: Infinity,
+				crossoverRate: 0,
+				compoundCrossover: false,
+				parentCount: 2,
+				childCount: 2,
+				mutationRate: 0,
+				selector: 'tournament'
+			});
+		});
+
+		it('passes through settings with values', function() {
+			let result = settingsUtils.applyDefaults({
+				foo: 'bar',
+				generationLimit: 10000,
+				crossoverRate: 0.5,
+				compoundCrossover: true,
+				parentCount: 3,
+				childCount: 5,
+				mutationRate: 0.1,
+				selector: 'foo'
+			});
+
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				generationLimit: 10000,
+				crossoverRate: 0.5,
+				compoundCrossover: true,
+				parentCount: 3,
+				childCount: 5,
+				mutationRate: 0.1,
+				selector: 'foo'
+			});
+		});
 	});
 
 	describe('::normalizeSelector', function() {
@@ -216,47 +256,6 @@ describe('settingsUtils', function() {
 		});
 	});
 
-	describe('::applyDefaults', function() {
-		it('applies default settings', function() {
-			let result = settingsUtils.applyDefaults({ foo: 'bar' });
-
-			expect(result).to.deep.equal({
-				foo: 'bar',
-				generationLimit: Infinity,
-				crossoverRate: 0,
-				compoundCrossover: false,
-				parentCount: 2,
-				childCount: 2,
-				mutationRate: 0,
-				selectorClass: TournamentSelector
-			});
-		});
-
-		it('passes through settings with values', function() {
-			let result = settingsUtils.applyDefaults({
-				foo: 'bar',
-				generationLimit: 10000,
-				crossoverRate: 0.5,
-				compoundCrossover: true,
-				parentCount: 3,
-				childCount: 5,
-				mutationRate: 0.1,
-				selectorClass: TestSelector
-			});
-
-			expect(result).to.deep.equal({
-				foo: 'bar',
-				generationLimit: 10000,
-				crossoverRate: 0.5,
-				compoundCrossover: true,
-				parentCount: 3,
-				childCount: 5,
-				mutationRate: 0.1,
-				selectorClass: TestSelector
-			});
-		});
-	});
-
 	describe('::validate', function() {
 		it('returns provided settings', function() {
 			let settings = { foo: 'bar' };
@@ -268,10 +267,13 @@ describe('settingsUtils', function() {
 	describe('::normalize', function() {
 		it('returns normalized settings object', function() {
 			let settings = { foo: 'bar' };
+			let defaultsApplied = { foo: 'defaults applied' };
 			let selectorNormalized = { foo: 'selector normalized' };
 			let asyncNormalized = { foo: 'async normalized' };
 			let chromosomeNormalized = { foo: 'chromosome normalized' };
-			let defaultsApplied = { foo: 'defaults applied' };
+			sandbox.stub(settingsUtils, 'applyDefaults').returns(
+				defaultsApplied
+			);
 			sandbox.stub(settingsUtils, 'normalizeSelector').returns(
 				selectorNormalized
 			);
@@ -281,21 +283,21 @@ describe('settingsUtils', function() {
 			sandbox.stub(settingsUtils, 'normalizeChromosome').returns(
 				chromosomeNormalized
 			);
-			sandbox.stub(settingsUtils, 'applyDefaults').returns(
-				defaultsApplied
-			);
-			sandbox.stub(settingsUtils, 'validate').returns(
-				defaultsApplied
-			);
+			sandbox.stub(settingsUtils, 'validate').returnsArg(0);
 
 			let result = settingsUtils.normalize(settings);
 
+			expect(settingsUtils.applyDefaults).to.be.calledOnce;
+			expect(settingsUtils.applyDefaults).to.be.calledOn(settingsUtils);
+			expect(settingsUtils.applyDefaults).to.be.calledWith(
+				settings
+			);
 			expect(settingsUtils.normalizeSelector).to.be.calledOnce;
 			expect(settingsUtils.normalizeSelector).to.be.calledOn(
 				settingsUtils
 			);
 			expect(settingsUtils.normalizeSelector).to.be.calledWith(
-				settings
+				defaultsApplied
 			);
 			expect(settingsUtils.normalizeAsync).to.be.calledOnce;
 			expect(settingsUtils.normalizeAsync).to.be.calledOn(settingsUtils);
@@ -309,15 +311,12 @@ describe('settingsUtils', function() {
 			expect(settingsUtils.normalizeChromosome).to.be.calledWith(
 				asyncNormalized
 			);
-			expect(settingsUtils.applyDefaults).to.be.calledOnce;
-			expect(settingsUtils.applyDefaults).to.be.calledOn(settingsUtils);
-			expect(settingsUtils.applyDefaults).to.be.calledWith(
-				chromosomeNormalized
-			);
 			expect(settingsUtils.validate).to.be.calledOnce;
 			expect(settingsUtils.validate).to.be.calledOn(settingsUtils);
-			expect(settingsUtils.validate).to.be.calledWith(defaultsApplied);
-			expect(result).to.equal(defaultsApplied);
+			expect(settingsUtils.validate).to.be.calledWith(
+				chromosomeNormalized
+			);
+			expect(result).to.equal(chromosomeNormalized);
 		});
 	});
 });
