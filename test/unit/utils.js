@@ -1,6 +1,7 @@
 const utils = require('../../lib/utils');
 const sinon = require('sinon');
 const _ = require('lodash');
+const boolChance = require('bool-chance');
 
 describe('utils', function() {
 	let sandbox;
@@ -11,35 +12,6 @@ describe('utils', function() {
 
 	afterEach(function() {
 		sandbox.restore();
-	});
-
-	describe('::boolChance', function() {
-		beforeEach(function() {
-			sandbox.stub(Math, 'random').returns(0.5);
-		});
-
-		it('gets a random float in [0, 1)', function() {
-			utils.boolChance();
-
-			expect(Math.random).to.be.calledOnce;
-			expect(Math.random).to.be.calledOn(Math);
-		});
-
-		it('returns true if random float is less than rate', function() {
-			expect(utils.boolChance(0.51)).to.be.true;
-		});
-
-		it('returns false if random float is equal than rate', function() {
-			expect(utils.boolChance(0.5)).to.be.false;
-		});
-
-		it('returns false if random float is greater than rate', function() {
-			expect(utils.boolChance(0.49)).to.be.false;
-		});
-
-		it('returns false if rate is undefined', function() {
-			expect(utils.boolChance()).to.be.false;
-		});
 	});
 
 	describe('::getCrossoverPoint', function() {
@@ -88,7 +60,7 @@ describe('utils', function() {
 	describe('::getCrossoverIndices', function() {
 		it('returns randomly-determined set of crossover indices', function() {
 			let length = 5;
-			sandbox.stub(utils, 'boolChance')
+			sandbox.stub(boolChance, 'get')
 				.onCall(0).returns(false)
 				.onCall(1).returns(true)
 				.onCall(2).returns(false)
@@ -97,9 +69,9 @@ describe('utils', function() {
 
 			let result = utils.getCrossoverIndices(length);
 
-			expect(utils.boolChance).to.have.callCount(length);
-			expect(utils.boolChance).to.always.be.calledOn(utils);
-			expect(utils.boolChance).to.always.be.calledWith(0.5);
+			expect(boolChance.get).to.have.callCount(length);
+			expect(boolChance.get).to.always.be.calledOn(boolChance);
+			expect(boolChance.get).to.always.be.calledWith(0.5);
 			expect(result).to.deep.equal([ 1, 4 ]);
 		});
 	});

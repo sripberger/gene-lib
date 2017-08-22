@@ -1,12 +1,12 @@
 const GenePool = require('../../lib/gene-pool');
 const sinon = require('sinon');
 const _ = require('lodash');
+const boolChance = require('bool-chance');
 const pasync = require('pasync');
 const XError = require('xerror');
 const BreedingScheme = require('../../lib/breeding-scheme');
 const Population = require('../../lib/population');
 const Selector = require('../../lib/selector');
-const utils = require('../../lib/utils');
 const TestIndividual = require('../lib/test-individual');
 const TestSelector = require('../lib/test-selector');
 
@@ -73,11 +73,11 @@ describe('GenePool', function() {
 			};
 
 			sandbox.stub(GenePool, 'getMaxCrossoverCount').returns(5);
-			sandbox.stub(utils, 'boolChance');
+			sandbox.stub(boolChance, 'get');
 		});
 
-		it('returns crossover and copy counts created using utils::boolChance', function() {
-			utils.boolChance.returns(false)
+		it('returns crossover and copy counts created using boolChance::get', function() {
+			boolChance.get.returns(false)
 				.onCall(1).returns(true)
 				.onCall(4).returns(true);
 
@@ -91,9 +91,9 @@ describe('GenePool', function() {
 				settings.generationSize,
 				settings.childCount
 			);
-			expect(utils.boolChance).to.have.callCount(5);
-			expect(utils.boolChance).to.always.be.calledOn(utils);
-			expect(utils.boolChance).to.always.be.calledWith(
+			expect(boolChance.get).to.have.callCount(5);
+			expect(boolChance.get).to.always.be.calledOn(boolChance);
+			expect(boolChance.get).to.always.be.calledWith(
 				settings.crossoverRate
 			);
 			expect(result).to.deep.equal({
@@ -107,7 +107,7 @@ describe('GenePool', function() {
 
 			let result = GenePool.getLitterCounts(settings);
 
-			expect(utils.boolChance).to.not.be.called;
+			expect(boolChance.get).to.not.be.called;
 			expect(result).to.deep.equal({
 				crossoverCount: 5,
 				copyCount: 0
