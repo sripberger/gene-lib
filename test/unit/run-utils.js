@@ -17,47 +17,49 @@ describe('runUtils', function() {
 	});
 
 	describe('::run', function() {
-		let settings, processedSettings, best;
+		let settings, normalizedSettings, best;
 
 		beforeEach(function() {
 			settings = { foo: 'bar' };
-			processedSettings = { baz: 'qux' };
+			normalizedSettings = { baz: 'qux' };
 			best = new TestChromosome('best');
 
-			sandbox.stub(settingsUtils, 'process').returns(processedSettings);
+			sandbox.stub(settingsUtils, 'normalize').returns(
+				normalizedSettings
+			);
 			sandbox.stub(runUtils, 'runSync').returns(best);
 			sandbox.stub(runUtils, 'runAsync').resolves(best);
 		});
 
-		it('processes provided settings', function() {
+		it('normalizes provided settings', function() {
 			runUtils.run(settings);
 
-			expect(settingsUtils.process).to.be.calledOnce;
-			expect(settingsUtils.process).to.be.calledOn(settingsUtils);
-			expect(settingsUtils.process).to.be.calledWith(settings);
+			expect(settingsUtils.normalize).to.be.calledOnce;
+			expect(settingsUtils.normalize).to.be.calledOn(settingsUtils);
+			expect(settingsUtils.normalize).to.be.calledWith(settings);
 		});
 
 		context('async setting is not set', function() {
-			it('returns result of ::runSync with processed settings', function() {
+			it('returns result of ::runSync with normalized settings', function() {
 				let result = runUtils.run(settings);
 
 				expect(runUtils.runSync).to.be.calledOnce;
 				expect(runUtils.runSync).to.be.calledOn(runUtils);
-				expect(runUtils.runSync).to.be.calledWith(processedSettings);
+				expect(runUtils.runSync).to.be.calledWith(normalizedSettings);
 				expect(result).to.equal(best);
 			});
 		});
 
 		context('async setting is set', function() {
-			it('resolves with result of ::runAsync with processed settings', function() {
-				processedSettings.async = {};
+			it('resolves with result of ::runAsync with normalized settings', function() {
+				normalizedSettings.async = {};
 
 				return runUtils.run(settings)
 					.then((result) => {
 						expect(runUtils.runAsync).to.be.calledOnce;
 						expect(runUtils.runAsync).to.be.calledOn(runUtils);
 						expect(runUtils.runAsync).to.be.calledWith(
-							processedSettings
+							normalizedSettings
 						);
 						expect(result).to.equal(best);
 					});

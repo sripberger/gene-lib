@@ -218,8 +218,8 @@ describe('settingsUtils', function() {
 		});
 	});
 
-	describe('::process', function() {
-		it('normalizes, applies defaults, then validates', function() {
+	describe('::normalize', function() {
+		it('returns normalized settings object', function() {
 			let settings = { foo: 'bar' };
 			let asyncNormalized = { foo: 'async normalized' };
 			let chromosomeNormalized = { foo: 'chromosome normalized' };
@@ -237,7 +237,7 @@ describe('settingsUtils', function() {
 				defaultsApplied
 			);
 
-			let result = settingsUtils.process(settings);
+			let result = settingsUtils.normalize(settings);
 
 			expect(settingsUtils.normalizeAsync).to.be.calledOnce;
 			expect(settingsUtils.normalizeAsync).to.be.calledOn(settingsUtils);
