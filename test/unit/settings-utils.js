@@ -1,5 +1,6 @@
 const settingsUtils = require('../../lib/settings-utils');
 const sinon = require('sinon');
+const { defaultRegistry } = require('../../lib/selector-registry');
 const TournamentSelector = require('../../lib/tournament-selector');
 const TestSelector = require('../lib/test-selector');
 const TestChromosome = require('../lib/test-chromosome');
@@ -13,9 +14,55 @@ describe('settingsUtils', function() {
 
 	afterEach(function() {
 		sandbox.restore();
-
+		defaultRegistry.clear();
 		delete TestSelector.async;
 		delete TestChromosome.async;
+	});
+
+	describe('::normalizeSelector', function() {
+		const FooSelector = () => {};
+
+		beforeEach(function() {
+			defaultRegistry.register('test', TestSelector);
+		});
+
+		it('replaces selector with selector class from default registry', function() {
+
+			let result = settingsUtils.normalizeSelector({
+				foo: 'bar',
+				selector: 'test'
+			});
+
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				selectorClass: TestSelector
+			});
+		});
+
+		it('prioritizes explicit selector class', function() {
+			let result = settingsUtils.normalizeSelector({
+				foo: 'bar',
+				selector: 'test',
+				selectorClass: FooSelector
+			});
+
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				selectorClass: FooSelector
+			});
+		});
+
+		it('supports explicit selector class with no selector setting', function() {
+			let result = settingsUtils.normalizeSelector({
+				foo: 'bar',
+				selectorClass: FooSelector
+			});
+
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				selectorClass: FooSelector
+			});
+		});
 	});
 
 	describe('::getAsyncFromClasses', function() {
@@ -221,9 +268,13 @@ describe('settingsUtils', function() {
 	describe('::normalize', function() {
 		it('returns normalized settings object', function() {
 			let settings = { foo: 'bar' };
+			let selectorNormalized = { foo: 'selector normalized' };
 			let asyncNormalized = { foo: 'async normalized' };
 			let chromosomeNormalized = { foo: 'chromosome normalized' };
 			let defaultsApplied = { foo: 'defaults applied' };
+			sandbox.stub(settingsUtils, 'normalizeSelector').returns(
+				selectorNormalized
+			);
 			sandbox.stub(settingsUtils, 'normalizeAsync').returns(
 				asyncNormalized
 			);
@@ -239,9 +290,18 @@ describe('settingsUtils', function() {
 
 			let result = settingsUtils.normalize(settings);
 
+			expect(settingsUtils.normalizeSelector).to.be.calledOnce;
+			expect(settingsUtils.normalizeSelector).to.be.calledOn(
+				settingsUtils
+			);
+			expect(settingsUtils.normalizeSelector).to.be.calledWith(
+				settings
+			);
 			expect(settingsUtils.normalizeAsync).to.be.calledOnce;
 			expect(settingsUtils.normalizeAsync).to.be.calledOn(settingsUtils);
-			expect(settingsUtils.normalizeAsync).to.be.calledWith(settings);
+			expect(settingsUtils.normalizeAsync).to.be.calledWith(
+				selectorNormalized
+			);
 			expect(settingsUtils.normalizeChromosome).to.be.caledOnce;
 			expect(settingsUtils.normalizeChromosome).to.be.calledOn(
 				settingsUtils
