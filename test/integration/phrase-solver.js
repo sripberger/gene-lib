@@ -61,15 +61,7 @@ describe('Phrase Solver', function() {
 			mutationRate: 0.05,
 			chromosomeClass: AsyncPhrase,
 			createArg: target,
-			selectorClass: AsyncSelector,
-			async: {
-				create: 1,
-				calculateFitness: 1,
-				crossover: 1,
-				mutate: 1,
-				add: 1,
-				select: 1
-			}
+			selectorClass: AsyncSelector
 		})
 			.then((result) => {
 				expect(result.str).to.equal(target);
