@@ -1,5 +1,4 @@
 const geneLib = require('../../lib');
-const { TournamentSelector, RouletteSelector } = geneLib;
 const Phrase = require('../lib/phrase');
 const AsyncPhrase = require('../lib/async-phrase');
 const AsyncSelector = require('../lib/async-selector');
@@ -15,7 +14,7 @@ describe('Phrase Solver', function() {
 			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
-			selectorClass: TournamentSelector
+			selector: 'tournament'
 		});
 
 		expect(result.str).to.equal(target);
@@ -29,7 +28,7 @@ describe('Phrase Solver', function() {
 			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
-			selectorClass: TournamentSelector,
+			selector: 'tournament',
 			selectorSettings: {
 				tournamentSize: 3,
 				baseWeight: 0.75
@@ -47,7 +46,7 @@ describe('Phrase Solver', function() {
 			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
-			selectorClass: RouletteSelector
+			selector: 'roulette'
 		});
 
 		expect(result.str).to.equal(target);
@@ -76,7 +75,7 @@ describe('Phrase Solver', function() {
 			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
-			selectorClass: TournamentSelector,
+			selector: 'tournament',
 			async: {}
 		})
 			.then((result) => {
