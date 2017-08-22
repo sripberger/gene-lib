@@ -90,7 +90,7 @@ describe('Population', function() {
 			let settings = {
 				generationSize: 2,
 				createChromosome: () => {},
-				createArg: 'create argument'
+				createArgs: [ 'baz', 'qux' ]
 			};
 			sandbox.stub(Individual, 'createSync')
 				.onFirstCall().returns(foo)
@@ -102,7 +102,7 @@ describe('Population', function() {
 			expect(Individual.createSync).to.always.be.calledOn(Individual);
 			expect(Individual.createSync).to.always.be.calledWith(
 				settings.createChromosome,
-				settings.createArg
+				settings.createArgs
 			);
 			expect(result).to.be.an.instanceof(Population);
 			expect(result.individuals).to.deep.equal([ foo, bar ]);
@@ -121,7 +121,7 @@ describe('Population', function() {
 			settings = {
 				generationSize: 2,
 				createChromosome: () => {},
-				createArg: 'create argument',
+				createArgs: [ 'baz', 'qux' ],
 				async: { create: 4 }
 			};
 
@@ -164,7 +164,7 @@ describe('Population', function() {
 						expect(Individual.createAsync).to.be.calledOn(Individual);
 						expect(Individual.createAsync).to.be.calledWith(
 							settings.createChromosome,
-							settings.createArg
+							settings.createArgs
 						);
 						expect(result).to.equal(individual);
 					});

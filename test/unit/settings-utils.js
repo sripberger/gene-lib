@@ -225,15 +225,21 @@ describe('settingsUtils', function() {
 	});
 
 	describe('::normalizeChromosome', function() {
-		it('passes createChromosome through', function() {
+		it('passes createChromosome and createArgs through', function() {
 			let createChromosome = () => {};
+			let createArgs = [ 'baz', 'qux' ];
 
 			let result = settingsUtils.normalizeChromosome({
 				foo: 'bar',
-				createChromosome
+				createChromosome,
+				createArgs
 			});
 
-			expect(result).to.deep.equal({ foo: 'bar', createChromosome });
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				createChromosome,
+				createArgs
+			});
 		});
 
 		it('replaces chromosomeClass with createChromosome', function() {
@@ -252,6 +258,18 @@ describe('settingsUtils', function() {
 			expect(result).to.deep.equal({
 				foo: 'bar',
 				createChromosome: boundCreate,
+			});
+		});
+
+		it('replaces createArg with single-element createArgs', function() {
+			let result = settingsUtils.normalizeChromosome({
+				foo: 'bar',
+				createArg: 'baz'
+			});
+
+			expect(result).to.deep.equal({
+				foo: 'bar',
+				createArgs: [ 'baz' ]
 			});
 		});
 	});
