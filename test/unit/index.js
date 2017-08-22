@@ -1,10 +1,12 @@
 const geneLib = require('../../lib');
 const sinon = require('sinon');
-const settingsUtils = require('../../lib/settings-utils');
+const { defaultRegistry } = require('../../lib/selector-registry');
 const runUtils = require('../../lib/run-utils');
+const settingsUtils = require('../../lib/settings-utils');
 const TestChromosome = require('../lib/test-chromosome');
+const TestSelector = require('../lib/test-selector');
 
-describe.skip('geneLib', function() {
+describe('geneLib', function() {
 	let sandbox;
 
 	beforeEach(function() {
@@ -63,6 +65,21 @@ describe.skip('geneLib', function() {
 						expect(result).to.equal(best);
 					});
 			});
+		});
+	});
+
+	describe('::registerSelector', function() {
+		it('does the thing', function() {
+			sandbox.stub(defaultRegistry, 'register');
+
+			geneLib.registerSelector('test', TestSelector);
+
+			expect(defaultRegistry.register).to.be.calledOnce;
+			expect(defaultRegistry.register).to.be.calledOn(defaultRegistry);
+			expect(defaultRegistry.register).to.be.calledWith(
+				'test',
+				TestSelector
+			);
 		});
 	});
 });
