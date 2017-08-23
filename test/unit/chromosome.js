@@ -3,6 +3,19 @@ const sinon = require('sinon');
 const XError = require('xerror');
 
 describe('Chromosome', function() {
+	describe('::isChromosome', function() {
+		it('returns true if obj.getFitness is a function', function() {
+			expect(Chromosome.isChromosome({
+				getFitness: () => {}
+			})).to.be.true;
+		});
+
+		it('returns false otherwise', function() {
+			expect(Chromosome.isChromosome({})).to.be.false;
+			expect(Chromosome.isChromosome({ getFitness: 'foo' })).to.be.false;
+		});
+	});
+
 	describe('::create', function() {
 		it('throws unsupported operation error', function() {
 			expect(() => Chromosome.create())
