@@ -7,16 +7,6 @@ const Population = require('../../lib/population');
 const TestIndividual = require('../lib/test-individual');
 
 describe('Runner', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	it('initializes instance with provided population and settings', function() {
 		let population = new Population();
 		let settings = { foo: 'bar' };

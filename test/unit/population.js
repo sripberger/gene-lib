@@ -5,16 +5,6 @@ const Individual = require('../../lib/individual');
 const TestIndividual = require('../lib/test-individual');
 
 describe('Population', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	it('stores provided invididuals array and settings object', function() {
 		let foo = new TestIndividual('foo');
 		let bar = new TestIndividual('bar');

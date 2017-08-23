@@ -5,16 +5,6 @@ const _ = require('lodash');
 const TestIndividual = require('../lib/test-individual');
 
 describe('TournamentSelector', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	it('extends ArraySelector', function() {
 		let selector = new TournamentSelector();
 

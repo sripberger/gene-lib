@@ -1,18 +1,10 @@
 const settingsUtils = require('../../lib/settings-utils');
-const sinon = require('sinon');
 const { defaultRegistry } = require('../../lib/selector-registry');
 const TestSelector = require('../lib/test-selector');
 const TestChromosome = require('../lib/test-chromosome');
 
 describe('settingsUtils', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
 	afterEach(function() {
-		sandbox.restore();
 		defaultRegistry.clear();
 		delete TestSelector.async;
 		delete TestChromosome.async;

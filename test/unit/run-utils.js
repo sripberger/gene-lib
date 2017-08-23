@@ -1,19 +1,8 @@
 const runUtils = require('../../lib/run-utils');
-const sinon = require('sinon');
 const Runner = require('../../lib/runner');
 const TestIndividual = require('../lib/test-individual');
 
 describe('runUtils', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	describe('::runSync', function() {
 		it('synchronously runs a genetic algorithm with provided settings', function() {
 			let settings = { foo: 'bar' };

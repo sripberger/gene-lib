@@ -7,6 +7,7 @@
 		"no-unused-expressions": 0	// needed for chai expect
 	},
 	"globals": {
-		"expect": false
+		"expect": false,
+		"sandbox": false
 	}
 }

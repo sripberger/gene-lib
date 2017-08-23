@@ -6,16 +6,6 @@ const Population = require('../../lib/population');
 const TestIndividual = require('../lib/test-individual');
 
 describe('BreedingScheme', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	it('stores provided crossovers, copies, and settings', function() {
 		let individuals = _.times(6, (i) => new TestIndividual(i));
 		let crossovers = [

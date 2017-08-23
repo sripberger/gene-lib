@@ -3,16 +3,6 @@ const sinon = require('sinon');
 const TestChromosome = require('../lib/test-chromosome');
 
 describe('Individual', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	it('stores provided chromosome', function() {
 		let chromosome = new TestChromosome('chromosome');
 

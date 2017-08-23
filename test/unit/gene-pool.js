@@ -11,16 +11,6 @@ const TestIndividual = require('../lib/test-individual');
 const TestSelector = require('../lib/test-selector');
 
 describe('GenePool', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	it('stores provided selector, litter counts, and settings object', function() {
 		let crossoverCount = 10;
 		let copyCount = 50;

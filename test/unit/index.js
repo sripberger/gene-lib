@@ -1,5 +1,4 @@
 const geneLib = require('../../lib');
-const sinon = require('sinon');
 const { defaultRegistry } = require('../../lib/selector-registry');
 const runUtils = require('../../lib/run-utils');
 const settingsUtils = require('../../lib/settings-utils');
@@ -7,16 +6,6 @@ const TestChromosome = require('../lib/test-chromosome');
 const TestSelector = require('../lib/test-selector');
 
 describe('geneLib', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	describe('::run', function() {
 		let settings, normalizedSettings, best;
 

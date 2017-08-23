@@ -1,19 +1,8 @@
 const utils = require('../../lib/utils');
-const sinon = require('sinon');
 const _ = require('lodash');
 const boolChance = require('bool-chance');
 
 describe('utils', function() {
-	let sandbox;
-
-	beforeEach(function() {
-		sandbox = sinon.sandbox.create();
-	});
-
-	afterEach(function() {
-		sandbox.restore();
-	});
-
 	describe('::getCrossoverPoint', function() {
 		it('returns a random index between 0 and length', function() {
 			let length = 10;
