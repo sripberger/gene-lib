@@ -76,32 +76,73 @@ describe('Individual', function() {
 	});
 
 	describe('#setFitnessSync', function() {
-		it('sets fitness property to result of chromosome#getFitness', function() {
-			let chromosome = new TestChromosome('chromosome');
-			let individual = new Individual(chromosome);
-			sinon.stub(chromosome, 'getFitness').returns(42);
+		let chromosome, individual;
 
+		beforeEach(function() {
+			chromosome = new TestChromosome('chromosome');
+			individual = new Individual(chromosome);
+			sinon.stub(chromosome, 'getFitness').returns(42);
+		});
+
+		it('sets fitness property to result of chromosome#getFitness', function() {
 			individual.setFitnessSync();
 
 			expect(chromosome.getFitness).to.be.calledOnce;
 			expect(chromosome.getFitness).to.be.calledOn(chromosome);
 			expect(individual.fitness).to.equal(42);
 		});
+
+		it('does not call chromosome#getFitness if fitness is already set', function() {
+			individual.fitness = 42;
+
+			individual.setFitnessSync();
+
+			expect(chromosome.getFitness).to.not.be.called;
+		});
+
+		it('supports zero fitness', function() {
+			individual.fitness = 0;
+
+			individual.setFitnessSync();
+
+			expect(chromosome.getFitness).to.not.be.called;
+		});
 	});
 
 	describe('#setFitnessAsync', function() {
+		let chromosome, individual;
+
+		beforeEach(function() {
+			chromosome = new TestChromosome('chromosome');
+			individual = new Individual(chromosome);
+			sinon.stub(chromosome, 'getFitness').resolves(42);
+		});
+
 		it('sets fitness property to async result of chromosome#getFitness', function() {
-			let chromosome = new TestChromosome('chromosome');
-			let individual = new Individual(chromosome);
-			sinon.stub(chromosome, 'getFitness');
-
-			chromosome.getFitness.resolves(42);
-
 			return individual.setFitnessAsync()
 				.then(() => {
 					expect(chromosome.getFitness).to.be.calledOnce;
 					expect(chromosome.getFitness).to.be.calledOn(chromosome);
 					expect(individual.fitness).to.equal(42);
+				});
+		});
+
+		it('does not call chromosome#getFitness if fitness is already set', function() {
+			individual.fitness = 42;
+
+			return individual.setFitnessAsync()
+				.then(() => {
+					expect(chromosome.getFitness).to.not.be.called;
+				});
+
+		});
+
+		it('supports zero fitness', function() {
+			individual.fitness = 0;
+
+			return individual.setFitnessAsync()
+				.then(() => {
+					expect(chromosome.getFitness).to.not.be.called;
 				});
 		});
 	});
