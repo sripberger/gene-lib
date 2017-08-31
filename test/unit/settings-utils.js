@@ -182,7 +182,7 @@ describe('settingsUtils', function() {
 			});
 
 			it('does not set async if there is none', function() {
-				let result = settingsUtils.normalizeAsync({ foo: 'bar'});
+				let result = settingsUtils.normalizeAsync({ foo: 'bar' });
 
 				expect(result).to.deep.equal({ foo: 'bar' });
 			});

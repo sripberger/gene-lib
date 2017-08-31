@@ -23,7 +23,7 @@ describe('Individual', function() {
 		it('returns chromosome from factory as new individual', function() {
 			let result = Individual.createSync(
 				chromosomeFactory,
-				['foo', 'bar' ]
+				[ 'foo', 'bar' ]
 			);
 
 			expect(chromosomeFactory).to.be.calledOnce;
