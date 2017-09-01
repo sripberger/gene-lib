@@ -17,12 +17,14 @@
     "lint": "eslint . || exit 0",
     "unit": "mocha ./test/setup.js ./test/unit --recursive -R spec || exit 0",
     "integration": "mocha ./test/setup.js ./test/integration --recursive -R spec || exit 0",
-    "test": "npm run unit; npm run integration"
+    "test": "npm run unit; npm run integration",
+    "docs": "documentation build -f html -o docs"
   },
   "author": "Steve Ripberger",
   "license": "Apache-2.0",
   "devDependencies": {
     "chai": "^3.5.0",
+    "documentation": "^5.2.2",
     "eslint": "^3.19.0",
     "mocha": "^3.4.2",
     "sinon": "^2.3.2",
