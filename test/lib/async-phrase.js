@@ -14,8 +14,8 @@ class AsyncPhrase extends Phrase {
 		return Promise.resolve(super.create(target));
 	}
 
-	calculateFitness() {
-		return Promise.resolve(super.calculateFitness());
+	getFitness() {
+		return Promise.resolve(super.getFitness());
 	}
 
 	mutate(rate) {
