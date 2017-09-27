@@ -17,6 +17,7 @@ describe('settingsUtils', function() {
 			expect(result).to.deep.equal({
 				foo: 'bar',
 				generationLimit: Infinity,
+				solutionFitness: Infinity,
 				crossoverRate: 0,
 				compoundCrossover: false,
 				parentCount: 2,
@@ -31,6 +32,7 @@ describe('settingsUtils', function() {
 			let result = settingsUtils.applyDefaults({
 				foo: 'bar',
 				generationLimit: 10000,
+				solutionFitness: 100,
 				crossoverRate: 0.5,
 				compoundCrossover: true,
 				parentCount: 3,
@@ -43,6 +45,7 @@ describe('settingsUtils', function() {
 			expect(result).to.deep.equal({
 				foo: 'bar',
 				generationLimit: 10000,
+				solutionFitness: 100,
 				crossoverRate: 0.5,
 				compoundCrossover: true,
 				parentCount: 3,
