@@ -108,28 +108,47 @@ describe('Runner', function() {
 
 		beforeEach(function() {
 			population = new Population();
-			runner = new Runner(population);
+			runner = new Runner(population, { solutionFitness: 100 });
 			best = new TestIndividual('best');
 
 			sinon.stub(population, 'getBest').returns(best);
 		});
 
-		it('gets best individual and stores it on solution poperty, if its fitness is Infinity', function() {
-			best.fitness = Infinity;
-
+		it('gets best individual', function() {
 			runner.checkForSolution();
 
 			expect(population.getBest).to.be.calledOnce;
 			expect(population.getBest).to.be.calledOn(population);
-			expect(runner.solution).to.equal(best);
 		});
 
-		it('does not set solution property otherwise', function() {
-			best.fitness = 100;
+		context('best individual fitness equals settings.solutionFitness', function() {
+			it('stores best individual on solution property', function() {
+				best.fitness = 100;
 
-			runner.checkForSolution();
+				runner.checkForSolution();
 
-			expect(runner.solution).to.be.null;
+				expect(runner.solution).to.equal(best);
+			});
+		});
+
+		context('best individual fitness is above settings.solutionFitness', function() {
+			it('stores best individual on solution property', function() {
+				best.fitness = 101;
+
+				runner.checkForSolution();
+
+				expect(runner.solution).to.equal(best);
+			});
+		});
+
+		context('best individual fitness is below settings.solutionFitness', function() {
+			it('does not set solution property', function() {
+				best.fitness = 99;
+
+				runner.checkForSolution();
+
+				expect(runner.solution).to.equal(null);
+			});
 		});
 	});
 
