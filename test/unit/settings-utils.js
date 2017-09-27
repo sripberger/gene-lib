@@ -22,7 +22,8 @@ describe('settingsUtils', function() {
 				parentCount: 2,
 				childCount: 2,
 				mutationRate: 0,
-				selector: 'tournament'
+				selector: 'tournament',
+				selectorSettings: {}
 			});
 		});
 
@@ -35,7 +36,8 @@ describe('settingsUtils', function() {
 				parentCount: 3,
 				childCount: 5,
 				mutationRate: 0.1,
-				selector: 'foo'
+				selector: 'foo',
+				selectorSettings: { baz: 'qux' }
 			});
 
 			expect(result).to.deep.equal({
@@ -46,7 +48,8 @@ describe('settingsUtils', function() {
 				parentCount: 3,
 				childCount: 5,
 				mutationRate: 0.1,
-				selector: 'foo'
+				selector: 'foo',
+				selectorSettings: { baz: 'qux' }
 			});
 		});
 	});
