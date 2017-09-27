@@ -3,42 +3,12 @@ const XError = require('xerror');
 
 describe('Chromosome', function() {
 	describe('::isChromosome', function() {
-		let obj;
-
-		beforeEach(function() {
-			obj = {
-				getFitness: () => {},
-				crossover: () => {},
-				mutate: () => {}
-			};
-		});
-
-		it('returns false if obj.getFitness is not a function', function() {
-			obj.getFitness = {};
+		it('returns true if obj.getFitness a function', function() {
+			let obj = { getFitness: {} };
+			let otherObj = { getFitness: () => {} };
 
 			expect(Chromosome.isChromosome(obj)).to.be.false;
-		});
-
-		it('returns false if obj.crossover is not a function', function() {
-			obj.crossover = {};
-
-			expect(Chromosome.isChromosome(obj)).to.be.false;
-		});
-
-		it('returns false if obj.mutate is not a function', function() {
-			obj.mutate = {};
-
-			expect(Chromosome.isChromosome(obj)).to.be.false;
-		});
-
-		it('returns true otherwise', function() {
-			expect(Chromosome.isChromosome(obj)).to.be.true;
-		});
-
-		it('returns true for Chromosome instances', function() {
-			let chromosome = new Chromosome();
-
-			expect(Chromosome.isChromosome(chromosome)).to.be.true;
+			expect(Chromosome.isChromosome(otherObj)).to.be.true;
 		});
 	});
 
