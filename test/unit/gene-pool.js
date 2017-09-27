@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const _ = require('lodash');
 const boolChance = require('bool-chance');
 const pasync = require('pasync');
-const XError = require('xerror');
 const BreedingScheme = require('../../lib/breeding-scheme');
 const Population = require('../../lib/population');
 const Selector = require('../../lib/selector');
@@ -38,17 +37,6 @@ describe('GenePool', function() {
 		it('returns generation size divided by child count', function() {
 			expect(GenePool.getMaxCrossoverCount(12, 2)).to.equal(6);
 			expect(GenePool.getMaxCrossoverCount(15, 3)).to.equal(5);
-		});
-
-		it('throws if generation size is not a multiple of child count', function() {
-			expect(() => GenePool.getMaxCrossoverCount(10, 3))
-				.to.throw(XError).that.satisfies((err) => {
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
-					expect(err.message).to.equal(
-						'generationSize must be a multiple of childCount'
-					);
-					return true;
-				});
 		});
 	});
 
