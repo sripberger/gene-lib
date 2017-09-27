@@ -1,4 +1,5 @@
 const settingsUtils = require('../../lib/settings-utils');
+const XError = require('xerror');
 const { defaultRegistry } = require('../../lib/selector-registry');
 const TestSelector = require('../lib/test-selector');
 const TestChromosome = require('../lib/test-chromosome');
@@ -273,10 +274,244 @@ describe('settingsUtils', function() {
 	});
 
 	describe('::validate', function() {
-		it('returns provided settings', function() {
-			let settings = { foo: 'bar' };
+		let settings;
 
+		beforeEach(function() {
+			settings = {
+				createChromosome: () => {},
+				selectorClass: () => {},
+				generationSize: 10000,
+				generationLimit: 1000,
+				solutionFitness: 100,
+				crossoverRate: 0.8,
+				parentCount: 4,
+				childCount: 2,
+				mutationRate: 0.1
+			};
+		});
+
+		it('returns valid settings', function() {
 			expect(settingsUtils.validate(settings)).to.equal(settings);
+		});
+
+		it('throws invalid argument if createChromosome is missing', function() {
+			delete settings.createChromosome;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'Either chromosomeClass or ' +
+						'createChromosome is required.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if createChromosome is not a function', function() {
+			settings.createChromosome = {};
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'createChromosome must be a function.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if selectorClass is not a function', function() {
+			settings.selectorClass = {};
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'selectorClass must be a constructor.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if generationSize is missing', function() {
+			delete settings.generationSize;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal('generationSize is required.');
+					return true;
+				});
+		});
+
+		it('throws invalid argument if generationSize is zero', function() {
+			settings.generationSize = 0;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'generationSize must be a positive integer.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if generationSize is negative', function() {
+			settings.generationSize = -1;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'generationSize must be a positive integer.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if generationSize is a float', function() {
+			settings.generationSize = 1.5;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'generationSize must be a positive integer.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if generationLimit is not a number', function() {
+			settings.generationLimit = {};
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'generationLimit must be a number.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if solutionFitness is not a number', function() {
+			settings.solutionFitness = {};
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'solutionFitness must be a number.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if crossoverRate is not a number', function() {
+			settings.crossoverRate = {};
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'crossoverRate must be a number.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if parentCount is less than two', function() {
+			settings.parentCount = 1;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'parentCount must be an integer greater than 1.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if parentCount is a float', function() {
+			settings.parentCount = 2.5;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'parentCount must be an integer greater than 1.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if childCount is zero', function() {
+			settings.childCount = 0;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'childCount must be a positive integer.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if childCount is negative', function() {
+			settings.childCount = -1;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'childCount must be a positive integer.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if childCount is a float', function() {
+			settings.childCount = 1.5;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'childCount must be a positive integer.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if generationSize is not a multiple of childCount', function() {
+			settings.childCount = 3;
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'generationSize must be a multiple of childCount.'
+					);
+					return true;
+				});
+		});
+
+		it('throws invalid argument if mutationRate is not a number', function() {
+			settings.mutationRate = {};
+
+			expect(() => settingsUtils.validate(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'mutationRate must be a number.'
+					);
+					return true;
+				});
 		});
 	});
 
