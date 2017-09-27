@@ -23,11 +23,13 @@ class MyChromosome extends Chromosome {
 
 	getFitness() {
 		// Return a number representing the chromosome's fitness.
+		// You must always implement this method.
 	}
 
 	crossover(other) {
 		// Return an array of children based on some crossover with other.
-		// You must implement this if and only if you set the crossover rate.
+		// You must implement this if and only if you set the crossover rate,
+		// or if the compoundCrossover option is true.
 	}
 
 	mutate(rate) {
@@ -65,7 +67,7 @@ console.log(result);
 ```
 
 
-## Settings Breakdown
+## Run Method Settings
 
 - **chromosomeClass**: This is your chromosome class constructor. It need not
   actually inherit from gene-lib's `Chromosome` class, but it must implement
@@ -120,13 +122,123 @@ console.log(result);
 
 ## Compound Crossovers
 
+As a convenience, gene-lib performs checks against the crossover rate
+internally. Normally, if two parents are selected and are determined to not
+cross over with each other, they are simply copied into the next generation
+without invoking the `crossover` method at all. This is what allows you to
+skip implementing the `crossover` method if your crossover rate is zero.
+
+This is great for most genetic algorithms, where crossovers either do or don't
+happen on at the chromosome level. Sometimes, however, it's useful to break your
+chromosomes down into component genes, each of which may or may not cross over
+with its counterpart gene in another chromosome.
+
+One such GA could be used to solve the
+[ordered clustered traveling salesman problem](https://www.hindawi.com/journals/tswj/2014/258207/).
+The path through each segment would be a gene, and crossover rate checks would
+need to occur at the gene level rather than the chromosome level.
+
+To do this, set the `compoundCrossover` option to true. This will cause the
+`crossover` method to be invoked for every selected set of parents. The
+crossoverRate will be passed to the `crossover` method as its last argument.
+You should do your rate checks against this argument in order to maintain the
+user's ability to easily tweak the crossover rate through `geneLib::run`
+settings:
+
+```js
+const { Chromosome } = require('gene-lib');
+
+class CompoundChromosome extends Chromosome {
+	create() {
+		// Return a new instance, as usual.
+	}
+
+	getFitness() {
+		// Return fitness, as usual.
+	}
+
+	crossover(other, rate) {
+		// Check each gene for crossover individually while creating children.
+	}
+}
+
+module.exports = WeirdChromosome;
+```
+
+```js
+const geneLib = require('gene-lib');
+const CompoundChromosome = require('./path/to/compound-chromosome');
+
+let result = geneLib.run({
+	chromosomeClass: CompoundChromosome
+	generationSize: 100
+	generationLimit: 1000,
+	crossoverRate: 0.5,
+	compoundCrossover: true
+});
+```
+
+
 ## Unusual Crossovers
 
-## Caching Chromosomes
+For most GA's, you'll have exactly two parents and exactly two chidren per
+crossover. Just in case you need it, however, gene-lib provides you with the
+ability to change either of these numbers using the parentCount and childCount
+settings.
+
+The parentCount must always be greater than one, and the childCount must always
+be positive. In addition, the childCount must be a factor of the generationSize.
+Otherwise, it would not be possible to create a generation of that size through
+crossover operations.
+
+Even though these are configurable, your crossover method must always accept
+the same number of parents and return the same number of children.
+
+The following example does crossovers with three parents and one child:
+
+```js
+const { Chromosome } = require('gene-lib');
+
+class WeirdChromosome extends Chromosome {
+	create() {
+		// Return a new instance, as usual.
+	}
+
+	getFitness() {
+		// Return fitness, as usual.
+	}
+
+	crossover(a, b) {
+		// Return a crossover of this, a, and b, producing only one child.
+		// You may return this child by itself, without wrapping it in an array.
+	}
+}
+
+module.exports = WeirdChromosome;
+```
+
+```js
+const geneLib = require('gene-lib');
+const WeirdChromosome = require('./path/to/weird-chromosome');
+
+let result = geneLib.run({
+	chromosomeClass: WeirdChromosome
+	generationSize: 100
+	generationLimit: 1000,
+	crossoverRate: 0.7,
+	parentCount: 3,
+	childCount: 1
+});
+```
+
+
+## Caching Fitness On Chromosomes
 
 ## Custom Selectors
 
 ## Asynchronous Operations
+
+## Utility Functions
 
 ## Phrase Solver Example
 
