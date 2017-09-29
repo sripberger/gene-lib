@@ -514,7 +514,7 @@ Utilities include:
 
 - `::getCrossoverPoint` for single point crossovers.
 - `::getCrossoverRange` demonstrated above.
-- `::getCrossoverIndices` for random n-point crossovers.
+- `::getCrossoverIndices` for uniform crossover with a ratio of 0.5.
 - `::pmx` Performs a [partially matched crossover](http://www.wardsystems.com/manuals/genehunter/crossover_of_enumerated_chromosomes.htm)
   between two arrays.
 
