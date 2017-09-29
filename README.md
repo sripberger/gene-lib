@@ -29,7 +29,7 @@ class MyChromosome extends Chromosome {
 	crossover(other) {
 		// Return an array of children based on some crossover with other.
 		// You must implement this if and only if you set the crossover rate,
-		// or if the compoundCrossover option is true.
+		// or if the compoundCrossover setting is true.
 	}
 
 	mutate(rate) {
@@ -363,6 +363,110 @@ let result = geneLib.run({
 
 
 ## Asynchronous Operations
+
+In Node frameworks it is common to support potentially asynchronous operations
+by simply wrapping the user-provided result with
+[`Promise::resolve`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve).
+This allows the user to return a promise for asynchronous operation, or anything
+else for synchronous operation.
+
+For genetic algorithms, however, this approach has too great an impact on
+performance, as it requires thousands of promises to be created every second.
+Instead, `gene-lib` assumes that every operation will be synchronous by default,
+since this will be the case for most genetic algorithms. If any operation in
+your GA needs to be asynchronous, you must declare it to be so explicitly using
+the `settings.async` `::run` argument.
+
+For example, if your `#getFitness` method must make a request to a database,
+have it return a promise that resolves with the fitness. Then set the
+`getFitness` property on `settings.async`:
+
+```js
+const geneLib = require('gene-lib');
+const MyChromosome = require('./path/to/my-chromosome');
+
+geneLib.run({
+	chromosomeClass: MyChromosome,
+	generationSize: 100,
+	generationLimit: 1000,
+	crossoverRate: 0.7,
+	mutationRate: 0.01,
+	async: {
+		getFitness: true
+	}
+})
+	.then((result) => {
+		// As you can see, since async was set, ::run now returns a promise
+		// that will resolve with the result.
+	});
+```
+
+You can make any combination of operations asynchronous if you wish. Even
+selector operations, though this will of course require a custom selector:
+
+```js
+const geneLib = require('gene-lib');
+const MyChromosome = require('./path/to/my-chromosome');
+const MySelector = require('./path/to/my-selector');
+
+geneLib.run({
+	chromosomeClass: MyChromosome,
+	selectorClass: MySelector,
+	generationSize: 100,
+	generationLimit: 1000,
+	crossoverRate: 0.7,
+	mutationRate: 0.01,
+	async: {
+
+		// Chromosome operations.
+		create: true,
+		getFitness: true,
+		crossover: true,
+		mutate: true,
+
+		// Selector operations.
+		add: true,
+		select: true
+	}
+})
+	.then((result) => {
+		// This will probably be really slow, but you can do it if you want.
+	});
+```
+
+
+### Concurrencies
+
+By default, asynchronous operations are done in series, but concurrency is
+supported. Simply provide the maximum number of simultaneous operations as the
+value in the `async` object:
+
+```js
+const geneLib = require('gene-lib');
+const MyChromosome = require('./path/to/my-chromosome');
+
+geneLib.run({
+	chromosomeClass: MyChromosome,
+	generationSize: 100,
+	generationLimit: 1000,
+	crossoverRate: 0.7,
+	mutationRate: 0.01,
+	async: {
+		create: 4,
+		getFitness: 2,
+	}
+})
+	.then((result) => {
+		// This will allow 4 concurrent ::create calls during the chromosome
+		// creation stage, and 2 concurrent #getFitness calls during fitness
+		// calculation stages.
+	});
+```
+
+If concurrent operations involve a request to some external service-- as they
+often will-- make sure not to set these concurrencies too high, otherwise
+you might overload that service with simultaneous requests.
+
 
 ## Utility Functions
 
