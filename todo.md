@@ -1,9 +1,5 @@
 # TODO
 
-## For 0.1.0
-- Rename `compoundCrossover` setting.
-    - Update README.
-
 ## For 1.0.0
 - Formally interpret async true as concurrency of 1, so as not to rely on
   undocumented pasync behavior.

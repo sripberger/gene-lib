@@ -80,8 +80,8 @@ describe('GenePool', function() {
 			});
 		});
 
-		it('supports compoundCrossover setting', function() {
-			settings.compoundCrossover = true;
+		it('supports manual crossover checks', function() {
+			settings.manualCrossoverCheck = true;
 
 			let result = GenePool.getLitterCounts(settings);
 

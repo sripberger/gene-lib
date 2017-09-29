@@ -29,7 +29,7 @@ class MyChromosome extends Chromosome {
 	crossover(other) {
 		// Return an array of children based on some crossover with other.
 		// You must implement this if and only if you set the crossover rate,
-		// or if the compoundCrossover setting is true.
+		// or if the manualCrossoverCheck setting is true.
 	}
 
 	mutate(rate) {
@@ -106,8 +106,9 @@ console.log(result);
   be produced through crossover operations, on average. Defaults to zero. You'll
   want to set either this, the mutationRate, or both, otherwise generations will
   not evolve and your GA will do nothing useful.
-- **compoundCrossover**: Set to true to bypass internal rate-checking of
-  crossover operations. See 'Compound Crossovers' below for more information.
+- **manualCrossoverCheck**: Set to true to bypass internal rate-checking of
+  crossover operations. See 'Manual Crossover Checks' below for more
+  information.
 - **parentCount**: Can be used to specify the number of parents per crossover
   operation. Must be an integer greater than 1. Defaults to 2. See 'Unsusual
   Crossovers' below for more information.
@@ -120,7 +121,7 @@ console.log(result);
   evolve and your GA will do nothing useful.
 
 
-## Compound Crossovers
+## Manual Crossover Checks
 
 As a convenience, `gene-lib` performs checks against the crossover rate
 internally. Normally, if two parents are selected and are determined to not
@@ -138,17 +139,16 @@ One such GA could be used to solve the
 The path through each segment would be a gene, and crossover rate checks would
 need to occur at the gene level rather than the chromosome level.
 
-To do this, set the `compoundCrossover` option to true. This will cause the
+To do this, set the `manualCrossoverCheck` option to true. This will cause the
 `crossover` method to be invoked for every selected set of parents. The
 crossoverRate will be passed to the `crossover` method as its last argument.
 You should do your rate checks against this argument in order to maintain the
-user's ability to easily tweak the crossover rate through `geneLib::run`
-settings:
+ability to easily tweak the crossover rate through `geneLib::run` settings:
 
 ```js
 const { Chromosome } = require('gene-lib');
 
-class CompoundChromosome extends Chromosome {
+class ManualChromosome extends Chromosome {
 	create() {
 		// Return a new instance, as usual.
 	}
@@ -162,19 +162,19 @@ class CompoundChromosome extends Chromosome {
 	}
 }
 
-module.exports = WeirdChromosome;
+module.exports = ManualChromosome;
 ```
 
 ```js
 const geneLib = require('gene-lib');
-const CompoundChromosome = require('./path/to/compound-chromosome');
+const ManualChromosome = require('./path/to/manual-chromosome');
 
 let result = geneLib.run({
-	chromosomeClass: CompoundChromosome
+	chromosomeClass: ManualChromosome
 	generationSize: 100
 	generationLimit: 1000,
 	crossoverRate: 0.5,
-	compoundCrossover: true
+	manualCrossoverCheck: true
 });
 ```
 
