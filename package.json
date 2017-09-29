@@ -1,6 +1,6 @@
 {
   "name": "gene-lib",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Object-oriented genetic algorithm framework",
   "main": "lib/index.js",
   "repository": {
