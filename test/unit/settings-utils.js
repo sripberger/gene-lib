@@ -114,7 +114,7 @@ describe('settingsUtils', function() {
 			};
 			TestChromosome.async = {
 				create: 2,
-				fitness: 3,
+				getFitness: 3,
 				crossover: 4,
 				mutate: 5,
 				add: 1,
@@ -130,7 +130,7 @@ describe('settingsUtils', function() {
 				add: 2,
 				select: 3,
 				create: 2,
-				fitness: 3,
+				getFitness: 3,
 				crossover: 4,
 				mutate: 5
 			});

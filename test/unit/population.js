@@ -196,7 +196,7 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.fitness is not set', function() {
+		context('settings.async.getFitness is not set', function() {
 			it('returns instance after invoking #setFitnessesSync', function() {
 				settings.async = {};
 
@@ -208,9 +208,9 @@ describe('Population', function() {
 			});
 		});
 
-		context('settings.async.fitness is set', function() {
+		context('settings.async.getFitness is set', function() {
 			it('resolves with instance after invoking #setFitnessesAsync', function() {
-				settings.async = { fitness: 1 };
+				settings.async = { getFitness: 1 };
 
 				return population.setFitnesses()
 					.then((result) => {
@@ -270,7 +270,7 @@ describe('Population', function() {
 					expect(pasync.eachLimit).to.be.calledOn(pasync);
 					expect(pasync.eachLimit).to.be.calledWith(
 						individuals,
-						settings.async.fitness,
+						settings.async.getFitness,
 						sinon.match.func
 					);
 					expect(result).to.equal(population);

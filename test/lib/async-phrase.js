@@ -4,7 +4,7 @@ class AsyncPhrase extends Phrase {
 	static get async() {
 		return {
 			create: 1,
-			fitness: 1,
+			getFitness: 1,
 			mutate: 1,
 			crossover: 1
 		};

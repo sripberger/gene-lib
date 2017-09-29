@@ -1,7 +1,6 @@
 # TODO
 
 ## For 0.1.0
-- Rename `async.fitness` setting to `async.getFitness` for consistency.
 - Interpret async true as concurrency of 1.
 
 ## For 1.0.0
