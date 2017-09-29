@@ -70,7 +70,7 @@ console.log(result);
 ## Run Method Settings
 
 - **chromosomeClass**: This is your chromosome class constructor. It need not
-  actually inherit from gene-lib's `Chromosome` class, but it must implement
+  actually inherit from `gene-lib`'s `Chromosome` class, but it must implement
   all required methods shown above, including the static `create` method.
 - **createChromosome**: As an alternative to chromosomeClass, you may specify
   a factory function that simply returns a chromosome object each time it is
@@ -122,7 +122,7 @@ console.log(result);
 
 ## Compound Crossovers
 
-As a convenience, gene-lib performs checks against the crossover rate
+As a convenience, `gene-lib` performs checks against the crossover rate
 internally. Normally, if two parents are selected and are determined to not
 cross over with each other, they are simply copied into the next generation
 without invoking the `crossover` method at all. This is what allows you to
@@ -182,7 +182,7 @@ let result = geneLib.run({
 ## Unusual Crossovers
 
 For most GA's, you'll have exactly two parents and exactly two chidren per
-crossover. Just in case you need it, however, gene-lib provides you with the
+crossover. Just in case you need it, however, `gene-lib` provides you with the
 ability to change either of these numbers using the parentCount and childCount
 settings.
 
@@ -234,7 +234,133 @@ let result = geneLib.run({
 
 ## Caching Fitness On Chromosomes
 
+Normally, the `#getFitness` method is only called once on each chromosome.
+Its result is stored internally as part of the `::run`  method, so you don't
+need to worry about caching it yourself. In some cases, however, you may want
+access to the fitness in the other chromosome methods. As a convenience for
+these cases, `gene-lib` provides the `CachingChromosome` base class:
+
+```js
+const { CachingChromosome } = require('gene-lib');
+const _ = require('lodash');
+
+class MyCachingChromosome extends CachingChromosome {
+	calculateFitness() {
+		// Implement this instead of #getFitness. The first #getFitness call
+		// will invoke this method and return its result. All subsequent
+		// #getFitness calls will return the same result without invoking
+		// #calculateFitness again.
+	}
+
+	crossover(other) {
+		// Assume doCrossover produces an array of child instances.
+		let children = doCrossover(this, other);
+
+		// Return only the highest-fitness child. The fitness result will be
+		// reused later when gene-lib needs it.
+		return _.maxBy(children, (child) => child.getFitness());
+	}
+}
+
+module.exports = MyCachingChromosome;
+```
+
+
 ## Custom Selectors
+
+`gene-lib` comes with tournament and roulette selection methods. If you need
+others, create one by extending the `Selector` class:
+
+```js
+const { Selector } = require('gene-lib');
+
+class MySelector extends Selector {
+	constructor(settings) {
+		// Settings object will be provided by the settings.selectorSettings
+		// ::run argument.
+		super(settings);
+
+		// Do any additional initialization here.
+	}
+
+	add(individual) {
+		// Store individual in the selector. The individual will be an object
+		// with two properties: 'fitness' and 'chromosome'.
+	}
+
+	select() {
+		// Return a single stored individual.
+	}
+}
+
+module.exports = MySelector;
+```
+
+Then provide the selector to the run method:
+
+```js
+const geneLib = require('geneLib');
+const MyChromosome = require('./path/to/my-chromosome');
+const MySelector = require('./path/to/my-selector');
+
+let result = geneLib.run({
+	chromosomeClass: MyChromosome,
+	selectorClass: MySelector,
+	generationSize: 100,
+	generationLimit: 1000,
+	crossoverRate: 0.7,
+	mutationRate: 0.01
+});
+
+```
+
+
+### Array Selectors
+
+Since most selectors will store individuals in an array, the `ArraySelector`
+base class is provided as a convenience. Its constructor creates an empty
+array on `this.individuals`, and its `#add` method simply pushes the provided
+individual onto that array:
+
+```js
+const { ArraySelector } = require('gene-lib');
+
+class MyArraySelector extends ArraySelector {
+	select() {
+		// Return a single individual from this.individuals.
+	}
+}
+
+module.exports = MyArraySelector;
+```
+
+
+### Registering New Selectors
+
+If you need your custom selection methods to be used more easily, you can
+register them globally with `gene-lib`:
+
+```js
+const geneLib = require('geneLib');
+const MySelector = require('./path/to/my-selector');
+
+geneLib.registerSelector('my-selector', MySelector);
+```
+
+```js
+const geneLib = require('geneLib');
+const MyChromosome = require('./path/to/my-chromosome');
+
+let result = geneLib.run({
+	chromosomeClass: MyChromosome,
+	selector: 'my-selector',
+	generationSize: 100,
+	generationLimit: 1000,
+	crossoverRate: 0.7,
+	mutationRate: 0.01
+});
+```
+
 
 ## Asynchronous Operations
 
