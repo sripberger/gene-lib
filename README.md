@@ -18,7 +18,7 @@ class MyChromosome extends Chromosome {
 
 	static create(arg) {
 		// Return a new instance of MyChromosome for the first generation.
-		// Argument can be specified in settings later.
+		// Argument(s) can be specified in settings later.
 	}
 
 	getFitness() {
@@ -46,7 +46,7 @@ module.exports = MyChromosome;
 
 Once your Chromosome class is created, you can easily run the GA using the
 `geneLib::run` method. The following will run 1000 generations of 100
-individuals, with a crossover rate of 0.2 and a mutation rate of 0.5. The
+individuals, with a crossover rate of 0.2 and a mutation rate of 0.05. The
 selection method defaults to deterministic binary tournament:
 
 ```js
@@ -113,7 +113,7 @@ console.log(result);
   Crossovers' below for more information.
 - **childCount**: Can be used to specify the number of children per crossover
   operation. Must be a positive integer that is also a factor of the
-  generationSize. Defaults to 2. See 'Unsusual Crossovers' below for more
+  generationSize. Defaults to 2. See 'Unusual Crossovers' below for more
   information.
 - **mutationRate**: Fractional rate of mutation. Defaults to zero. You'll want
   to set either this, the crossoverRate, or both, otherwise generations will not
@@ -531,12 +531,13 @@ in the
 
 ## Similar Projects
 
-On npm there are a lot of competing projects in this space without a clear
-winner. I created `gene-lib` mainly for my own enjoyment and because all of the
-existing projects had something about them I that didn't quite like.
+Currently on npm there are a lot of competing projects in this space without a
+clear winner. I created `gene-lib` mainly for my own enjoyment and because all
+of the existing projects had something about them I that didn't quite like.
 
 - [darwin-js](https://www.npmjs.com/package/darwin-js) - Similar idea, but far,
-  simpler. Can be both a good thing and a bad thing.
+  simpler. Can be both a good thing and a bad thing. As of this writing, it only
+  supports asynchronous fitness scoring, and even that must occur in series.
 - [genetic](https://www.npmjs.com/package/genetic) - I think this is a bit more
   targeted towards browsers. Everything is callback-based, which avoids the
   issue of creating lots of unnecessary promises, but that does make it a bit
