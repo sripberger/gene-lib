@@ -468,8 +468,85 @@ often will-- make sure not to set these concurrencies too high, otherwise
 you might overload that service with simultaneous requests.
 
 
-## Utility Functions
+## Utility Methods
+
+In addition to everything described thus far, `gene-lib` also comes with some
+utility methods to help you with your chromosome methods. `::getCrossoverRange`,
+for example, can help with a two-point crossover:
+
+```js
+const lodash = require('lodash');
+const geneLib = require('geneLib');
+const { Chromosome } = geneLib;
+
+class MyChromosome extends Chromosome {
+	// ...
+
+	crossover(other) {
+		// Assume 'genes' is an array property on each chromosome, containing
+		// its genetic data, and all chromosomes have the same number of genes:
+		let [ start, end ] = geneLib.getCrossoverRange(this.genes.length);
+
+		// Create two new instances. Assume they each have an empty genes array.
+		let children = _.times(2, () => new MyChromosome());
+
+		// Iterate through parents, copying genes into one child or another
+		// based on the crossover range.
+		for (let i = 0; i < this.genes.length; i += 1) {
+			if (_.inRange(i, start, end)) {
+				children[1].genes[i] = this.genes[i];
+				children[0].genes[i] = other.genes[i];
+			} else {
+				children[0].genes[i] = this.genes[i];
+				children[1].genes[i] = other.genes[i];
+			}
+		}
+
+		// And we're done.
+		return children;
+	}
+}
+
+module.exports = MyChromosome;
+```
+
+Utilities include:
+
+- `::getCrossoverPoint` for single point crossovers.
+- `::getCrossoverRange` demonstrated above.
+- `::getCrossoverIndices` for random n-point crossovers.
+- `::pmx` Performs a [partially matched crossover](http://www.wardsystems.com/manuals/genehunter/crossover_of_enumerated_chromosomes.htm)
+  between two arrays.
+
+Check out the api docs for more information.
+
 
 ## Phrase Solver Example
 
-## Similar Libraries
+For a simple example of `gene-lib` in action, check out the
+[phrase solver](https://github.com/sripberger/gene-lib/blob/master/test/lib/phrase.js)
+in the
+[integration tests](https://github.com/sripberger/gene-lib/blob/master/test/integration/phrase-solver.js).
+
+
+## Similar Projects
+
+On npm there are a lot of competing projects in this space without a clear
+winner. I created `gene-lib` mainly for my own enjoyment and because all of the
+existing projects had something about them I that didn't quite like.
+
+- [darwin-js](https://www.npmjs.com/package/darwin-js) - Similar idea, but far,
+  simpler. Can be both a good thing and a bad thing.
+- [genetic](https://www.npmjs.com/package/genetic) - I think this is a bit more
+  targeted towards browsers. Everything is callback-based, which avoids the
+  issue of creating lots of unnecessary promises, but that does make it a bit
+  less nice to use, depending on who you ask.
+- [genetic-js](https://www.npmjs.com/package/genetic-js) - Seems to be one of
+  the more popular ones. I'm not a big fan of the api or its documentation,
+  though much of that is just personal preference, I guess.
+- [geneticalgorithm](https://www.npmjs.com/package/geneticalgorithm) - Gives me
+  similar feelings to `genetic-js`.
+
+There are a lot more that I couldn't hope to list here. Feel free to search
+around on npm, if you're interested. I won't tell you which one to use, though
+I hope I've made a pretty good case for `gene-lib`.
