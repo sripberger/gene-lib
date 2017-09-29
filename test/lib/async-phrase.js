@@ -3,10 +3,10 @@ const Phrase = require('./phrase');
 class AsyncPhrase extends Phrase {
 	static get async() {
 		return {
-			create: 1,
-			getFitness: 1,
-			mutate: 1,
-			crossover: 1
+			create: true,
+			getFitness: true,
+			mutate: true,
+			crossover: true
 		};
 	}
 
