@@ -17,24 +17,32 @@ describe('Selector', function() {
 	});
 
 	describe('#add', function() {
-		it('throws unsupported operation error', function() {
+		it('throws unsupported operation with message', function() {
 			let selector = new Selector();
 
 			expect(() => selector.add())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'Selector subclass must override the #add method.'
+					);
+					return true;
+				});
 		});
 	});
 
 	describe('#select', function() {
-		it('throws unsupported operation error', function() {
+		it('throws unsupported operation with message', function() {
 			let selector = new Selector();
 
 			expect(() => selector.select())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'Selector subclass must override the #select method.'
+					);
+					return true;
+				});
 		});
 	});
 });

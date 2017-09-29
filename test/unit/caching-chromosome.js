@@ -10,13 +10,18 @@ describe('CachingChromosome', function() {
 	});
 
 	describe('#calculateFitness', function() {
-		it('throws unsupported operation error', function() {
+		it('throws unsupported operation with message', function() {
 			let chromosome = new CachingChromosome();
 
 			expect(() => chromosome.calculateFitness())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'CachingChromosome subclasses must override ' +
+						'#calculateFitness.'
+					);
+					return true;
+				});
 		});
 	});
 

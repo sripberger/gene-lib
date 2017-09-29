@@ -15,9 +15,15 @@ describe('Chromosome', function() {
 	describe('::create', function() {
 		it('throws unsupported operation error', function() {
 			expect(() => Chromosome.create())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'Chromosome ::create method not implemented. ' +
+						'Override it, or replace your chromosomeClass ' +
+						'setting with a createChromosome setting.'
+					);
+					return true;
+				});
 		});
 	});
 
@@ -26,9 +32,13 @@ describe('Chromosome', function() {
 			let chromosome = new Chromosome();
 
 			expect(() => chromosome.getFitness())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'Chromsome subclasses must override #getFitness'
+					);
+					return true;
+				});
 		});
 	});
 
@@ -37,9 +47,14 @@ describe('Chromosome', function() {
 			let chromosome = new Chromosome();
 
 			expect(() => chromosome.crossover())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'Chromsome subclasses must override #crossover if ' +
+						'there is a nonzero crossover rate.'
+					);
+					return true;
+				});
 		});
 	});
 
@@ -48,9 +63,14 @@ describe('Chromosome', function() {
 			let chromosome = new Chromosome();
 
 			expect(() => chromosome.mutate())
-				.to.throw(XError)
-				.with.property('code')
-				.that.equals(XError.UNSUPPORTED_OPERATION);
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.UNSUPPORTED_OPERATION);
+					expect(err.message).to.equal(
+						'Chromsome subclasses must override #mutate if ' +
+						'there is a nonzero mutation rate.'
+					);
+					return true;
+				});
 		});
 	});
 });
