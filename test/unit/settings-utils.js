@@ -193,125 +193,6 @@ describe('settingsUtils', function() {
 		});
 	});
 
-	describe('::getAsyncFromClasses', function() {
-		it('returns async properties from selector and chromosome classes', function() {
-			TestSelector.async = {
-				add: 2,
-				select: 3,
-				create: 1,
-				foo: 'bar'
-			};
-			TestChromosome.async = {
-				create: 2,
-				getFitness: 3,
-				crossover: 4,
-				mutate: 5,
-				add: 1,
-				foo: 'bar'
-			};
-
-			let result = settingsUtils.getAsyncFromClasses({
-				selectorClass: TestSelector,
-				chromosomeClass: TestChromosome
-			});
-
-			expect(result).to.deep.equal({
-				add: 2,
-				select: 3,
-				create: 2,
-				getFitness: 3,
-				crossover: 4,
-				mutate: 5
-			});
-		});
-
-		it('works if async is only defined on selector class', function() {
-			TestSelector.async = { add: 1 };
-
-			let result = settingsUtils.getAsyncFromClasses({
-				selectorClass: TestSelector
-			});
-
-			expect(result).to.deep.equal({ add: 1 });
-		});
-
-		it('works if async is only defined on chromosome class', function() {
-			TestChromosome.async = { create: 1 };
-
-			let result = settingsUtils.getAsyncFromClasses({
-				chromosomeClass: TestChromosome
-			});
-
-			expect(result).to.deep.equal({ create: 1 });
-		});
-
-		it('returns null if async is defined on neither', function() {
-			let result = settingsUtils.getAsyncFromClasses({
-				selectorClass: TestSelector,
-				chromosomeClass: TestChromosome
-			});
-
-			expect(result).to.be.null;
-		});
-	});
-
-	describe('::normalizeAsync', function() {
-		beforeEach(function() {
-			sandbox.stub(settingsUtils, 'getAsyncFromClasses');
-		});
-
-		context('no async from classes', function() {
-			beforeEach(function() {
-				settingsUtils.getAsyncFromClasses.returns(null);
-			});
-
-			it('returns unchanged settings with async', function() {
-				let result = settingsUtils.normalizeAsync({
-					foo: 'bar',
-					async: { baz: 'qux' }
-				});
-
-				expect(result).to.deep.equal({
-					foo: 'bar',
-					async: { baz: 'qux' }
-				});
-			});
-
-			it('does not set async if there is none', function() {
-				let result = settingsUtils.normalizeAsync({ foo: 'bar' });
-
-				expect(result).to.deep.equal({ foo: 'bar' });
-			});
-		});
-
-		context('async from classes', function() {
-			beforeEach(function() {
-				settingsUtils.getAsyncFromClasses.returns({ foo: 1, bar: 2 });
-			});
-
-			it('merges async from classes with async setting', function() {
-				let result = settingsUtils.normalizeAsync({
-					baz: 3,
-					async: { foo: 4, qux: 5 }
-				});
-
-				expect(result).to.deep.equal({
-					baz: 3,
-					async: { foo: 4, bar: 2, qux: 5 }
-				});
-			});
-
-			it('uses async from classes if there is no async setting', function() {
-				let result = settingsUtils.normalizeAsync({ baz: 3 });
-
-				expect(result).to.deep.equal({
-					baz: 3,
-					async: { foo: 1, bar: 2 }
-				});
-			});
-		});
-	});
-
 	describe('::normalizeChromosome', function() {
 		it('passes createChromosome and createArgs through', function() {
 			let createChromosome = () => {};
@@ -358,6 +239,33 @@ describe('settingsUtils', function() {
 			expect(result).to.deep.equal({
 				foo: 'bar',
 				createArgs: [ 'baz' ]
+			});
+		});
+	});
+
+	describe('::normalizeAsync', function() {
+		it('interprets true as 1, deletes false', function() {
+			expect(settingsUtils.normalizeAsync({
+				foo: 'bar',
+				async: {
+					bar: 2,
+					baz: true,
+					qux: false
+				}
+			})).to.deep.equal({
+				foo: 'bar',
+				async: {
+					bar: 2,
+					baz: 1
+				}
+			});
+		});
+
+		it('returns unchanged settings without async', function() {
+			expect(settingsUtils.normalizeAsync({
+				foo: 'bar'
+			})).to.deep.equal({
+				foo: 'bar'
 			});
 		});
 	});
@@ -611,6 +519,7 @@ describe('settingsUtils', function() {
 			let selectorNormalized = { foo: 'selector normalized' };
 			let defaultsApplied = { foo: 'defaults applied' };
 			let chromosomeNormalized = { foo: 'chromosome normalized' };
+			let asyncNormalized = { foo: 'async normalized' };
 			sandbox.stub(settingsUtils, 'addDefaultSelector').returns(
 				defaultSelectorAdded
 			);
@@ -622,6 +531,9 @@ describe('settingsUtils', function() {
 			);
 			sandbox.stub(settingsUtils, 'normalizeChromosome').returns(
 				chromosomeNormalized
+			);
+			sandbox.stub(settingsUtils, 'normalizeAsync').returns(
+				asyncNormalized
 			);
 			sandbox.stub(settingsUtils, 'validate').returnsArg(0);
 
@@ -653,12 +565,17 @@ describe('settingsUtils', function() {
 			expect(settingsUtils.normalizeChromosome).to.be.calledWith(
 				defaultsApplied
 			);
+			expect(settingsUtils.normalizeAsync).to.be.calledOnce;
+			expect(settingsUtils.normalizeAsync).to.be.calledOn(settingsUtils);
+			expect(settingsUtils.normalizeAsync).to.be.calledWith(
+				chromosomeNormalized
+			);
 			expect(settingsUtils.validate).to.be.calledOnce;
 			expect(settingsUtils.validate).to.be.calledOn(settingsUtils);
 			expect(settingsUtils.validate).to.be.calledWith(
-				chromosomeNormalized
+				asyncNormalized
 			);
-			expect(result).to.equal(chromosomeNormalized);
+			expect(result).to.equal(asyncNormalized);
 		});
 	});
 });
