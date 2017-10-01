@@ -1,10 +1,12 @@
 const { TournamentSelector } = require('../../lib');
 
 class AsyncSelector extends TournamentSelector {
-	static get async() {
+	static get settings() {
 		return {
-			add: 1,
-			select: 1
+			async: {
+				add: true,
+				select: true
+			}
 		};
 	}
 

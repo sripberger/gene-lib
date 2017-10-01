@@ -10,11 +10,8 @@ describe('Phrase Solver', function() {
 		let result = geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
-			crossoverRate: 0.2,
-			mutationRate: 0.05,
 			chromosomeClass: Phrase,
-			createArg: target,
-			selector: 'tournament'
+			createArg: target
 		});
 
 		expect(result.str).to.equal(target);
@@ -24,11 +21,8 @@ describe('Phrase Solver', function() {
 		let result = geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
-			crossoverRate: 0.2,
-			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
-			selector: 'tournament',
 			selectorSettings: {
 				tournamentSize: 3,
 				baseWeight: 0.75
@@ -42,8 +36,6 @@ describe('Phrase Solver', function() {
 		let result = geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
-			crossoverRate: 0.2,
-			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
 			selector: 'roulette'
@@ -56,8 +48,6 @@ describe('Phrase Solver', function() {
 		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
-			crossoverRate: 0.2,
-			mutationRate: 0.05,
 			chromosomeClass: AsyncPhrase,
 			createArg: target,
 			selectorClass: AsyncSelector
@@ -71,11 +61,8 @@ describe('Phrase Solver', function() {
 		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
-			crossoverRate: 0.2,
-			mutationRate: 0.05,
 			chromosomeClass: Phrase,
 			createArg: target,
-			selector: 'tournament',
 			async: {}
 		})
 			.then((result) => {

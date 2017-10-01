@@ -9,6 +9,13 @@ class Phrase extends Chromosome {
 		this.target = target;
 	}
 
+	static get settings() {
+		return {
+			crossoverRate: 0.2,
+			mutationRate: 0.05
+		};
+	}
+
 	static create(target) {
 		let chars = _.times(target.length, () => {
 			let charIndex = Math.floor(Math.random() * alphabet.length);

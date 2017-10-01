@@ -1,13 +1,16 @@
+const _ = require('lodash');
 const Phrase = require('./phrase');
 
 class AsyncPhrase extends Phrase {
-	static get async() {
-		return {
-			create: true,
-			getFitness: true,
-			mutate: true,
-			crossover: true
-		};
+	static get settings() {
+		return _.assign({}, super.settings, {
+			async: {
+				create: true,
+				getFitness: true,
+				mutate: true,
+				crossover: true
+			}
+		});
 	}
 
 	static create(target) {
