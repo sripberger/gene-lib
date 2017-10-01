@@ -119,6 +119,80 @@ console.log(result);
 - **mutationRate**: Fractional rate of mutation. Defaults to zero. You'll want
   to set either this, the crossoverRate, or both, otherwise generations will not
   evolve and your GA will do nothing useful.
+- **async**: Set to specify asynchronous operation. Set any of its properties
+  to true to cause that operation to become asynchronouse. Set a property to a
+  number to specify concurrency, which is otherwise assumed to be 1. See the
+  'Asynchronous Operations' section below for more information.
+    - **async.add**: Setting for selector `#add` operations.
+	- **async.selector**: Setting for selector `#select` operations.
+	- **async.create**: Setting for chromosome `::create` operations.
+	- **async.getFitness**: Setting for chromosome `#getFitness` operations.
+	- **async.crossover**: Setting for chromosome `#crossover` operations.
+	- **async.mutate**: Setting for chromosome `#mutate` operations.
+
+
+## Class-Level Settings
+
+Some of the settings above are directly tied to your chromosome and/or selector
+implementations. For these, it could make more sense to specify the settings
+on the chromosome or selector classes themselves. To do this, simply have a
+static `settings` property on the appropriate class. You can do this with a
+getter:
+
+```js
+const { Chromosome } = require('gene-lib')
+
+class MyChromosome extends Chromosome {
+	static get settings() {
+		return {
+			crossoverRate: 0.2,
+			mutationRate: 0.05
+		};
+	}
+
+	// Other chromosome methods...
+}
+module.exports = MyChromosome;
+```
+
+or by simply assigning it:
+
+```js
+const { Selector } = require('gene-lib');
+
+class MySelector extends Selector()  {
+	// Implement selector here...
+}
+
+MySelector.settings = {
+	selectorSettings: { foo: 'bar' }
+};
+
+module.exports = MySelector;
+```
+
+Settings provided directly to the `::run` method will always take priority over
+class-level settings, and not all settings are supported on the class level.
+
+Supported class-level settings for selectors include:
+
+- **selectorSettings**: Will become defaults to be applied to any
+  selectorSettings provided to the `::run` method.
+- **async.add**
+- **async.select**
+
+Supported class-level settings for chromosomes include:
+
+- **solutionFitness**
+- **crossoverRate**
+- **manualCrossoverCheck**
+- **parentCount**
+- **childCount**
+- **mutationRate**
+- **async.create**
+- **async.getFitness**
+- **async.crossover**
+- **async.mutate**
 
 
 ## Manual Crossover Checks
