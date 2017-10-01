@@ -301,12 +301,13 @@ describe('settingsUtils', function() {
 						'Either chromosomeClass or ' +
 						'createChromosome is required.'
 					);
+					expect(err.data).to.deep.equal({ settings });
 					return true;
 				});
 		});
 
 		it('throws invalid argument if createChromosome is not a function', function() {
-			settings.createChromosome = {};
+			settings.createChromosome = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
@@ -314,12 +315,15 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'createChromosome must be a function.'
 					);
+					expect(err.data).to.deep.equal({
+						createChromosome: settings.createChromosome
+					});
 					return true;
 				});
 		});
 
 		it('throws invalid argument if selectorClass is not a function', function() {
-			settings.selectorClass = {};
+			settings.selectorClass = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
@@ -327,6 +331,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'selectorClass must be a constructor.'
 					);
+					expect(err.data).to.deep.equal({
+						selectorClass: settings.selectorClass
+					});
 					return true;
 				});
 		});
@@ -338,6 +345,7 @@ describe('settingsUtils', function() {
 				.to.throw(XError).that.satisfies((err) => {
 					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
 					expect(err.message).to.equal('generationSize is required.');
+					expect(err.data).to.deep.equal({ settings });
 					return true;
 				});
 		});
@@ -351,6 +359,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'generationSize must be a positive integer.'
 					);
+					expect(err.data).to.deep.equal({
+						generationSize: settings.generationSize
+					});
 					return true;
 				});
 		});
@@ -364,6 +375,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'generationSize must be a positive integer.'
 					);
+					expect(err.data).to.deep.equal({
+						generationSize: settings.generationSize
+					});
 					return true;
 				});
 		});
@@ -377,12 +391,15 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'generationSize must be a positive integer.'
 					);
+					expect(err.data).to.deep.equal({
+						generationSize: settings.generationSize
+					});
 					return true;
 				});
 		});
 
 		it('throws invalid argument if generationLimit is not a number', function() {
-			settings.generationLimit = {};
+			settings.generationLimit = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
@@ -390,12 +407,15 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'generationLimit must be a number.'
 					);
+					expect(err.data).to.deep.equal({
+						generationLimit: settings.generationLimit
+					});
 					return true;
 				});
 		});
 
 		it('throws invalid argument if solutionFitness is not a number', function() {
-			settings.solutionFitness = {};
+			settings.solutionFitness = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
@@ -403,12 +423,15 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'solutionFitness must be a number.'
 					);
+					expect(err.data).to.deep.equal({
+						solutionFitness: settings.solutionFitness
+					});
 					return true;
 				});
 		});
 
 		it('throws invalid argument if crossoverRate is not a number', function() {
-			settings.crossoverRate = {};
+			settings.crossoverRate = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
@@ -416,6 +439,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'crossoverRate must be a number.'
 					);
+					expect(err.data).to.deep.equal({
+						crossoverRate: settings.crossoverRate
+					});
 					return true;
 				});
 		});
@@ -429,6 +455,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'parentCount must be an integer greater than 1.'
 					);
+					expect(err.data).to.deep.equal({
+						parentCount: settings.parentCount
+					});
 					return true;
 				});
 		});
@@ -442,6 +471,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'parentCount must be an integer greater than 1.'
 					);
+					expect(err.data).to.deep.equal({
+						parentCount: settings.parentCount
+					});
 					return true;
 				});
 		});
@@ -455,6 +487,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'childCount must be a positive integer.'
 					);
+					expect(err.data).to.deep.equal({
+						childCount: settings.childCount
+					});
 					return true;
 				});
 		});
@@ -468,6 +503,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'childCount must be a positive integer.'
 					);
+					expect(err.data).to.deep.equal({
+						childCount: settings.childCount
+					});
 					return true;
 				});
 		});
@@ -481,6 +519,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'childCount must be a positive integer.'
 					);
+					expect(err.data).to.deep.equal({
+						childCount: settings.childCount
+					});
 					return true;
 				});
 		});
@@ -494,12 +535,16 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'generationSize must be a multiple of childCount.'
 					);
+					expect(err.data).to.deep.equal({
+						generationSize: settings.generationSize,
+						childCount: settings.childCount
+					});
 					return true;
 				});
 		});
 
 		it('throws invalid argument if mutationRate is not a number', function() {
-			settings.mutationRate = {};
+			settings.mutationRate = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
@@ -507,6 +552,9 @@ describe('settingsUtils', function() {
 					expect(err.message).to.equal(
 						'mutationRate must be a number.'
 					);
+					expect(err.data).to.deep.equal({
+						mutationRate: settings.mutationRate
+					});
 					return true;
 				});
 		});
