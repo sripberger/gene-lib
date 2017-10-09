@@ -1,15 +1,14 @@
 const runUtils = require('../../lib/run-utils');
 const Runner = require('../../lib/runner');
-const TestIndividual = require('../lib/test-individual');
 
 describe('runUtils', function() {
 	describe('::runSync', function() {
 		it('synchronously runs a genetic algorithm with provided settings', function() {
 			let settings = { foo: 'bar' };
 			let runner = new Runner();
-			let best = new TestIndividual('best');
+			let runResult = { foo: 'bar' };
 			sandbox.stub(Runner, 'createSync').returns(runner);
-			sandbox.stub(runner, 'runSync').returns(best);
+			sandbox.stub(runner, 'runSync').returns(runResult);
 
 			let result = runUtils.runSync(settings);
 
@@ -18,7 +17,7 @@ describe('runUtils', function() {
 			expect(Runner.createSync).to.be.calledWith(settings);
 			expect(runner.runSync).to.be.calledOnce;
 			expect(runner.runSync).to.be.calledOn(runner);
-			expect(result).to.equal(best.chromosome);
+			expect(result).to.equal(runResult);
 		});
 	});
 
@@ -26,9 +25,9 @@ describe('runUtils', function() {
 		it('asynchronously runs a genetic algorithm with the provided settings', function() {
 			let settings = { foo: 'bar' };
 			let runner = new Runner();
-			let best = new TestIndividual('best');
+			let runResult = { foo: 'bar' };
 			sandbox.stub(Runner, 'createAsync').resolves(runner);
-			sandbox.stub(runner, 'runAsync').resolves(best);
+			sandbox.stub(runner, 'runAsync').resolves(runResult);
 
 			return runUtils.runAsync(settings)
 				.then((result) => {
@@ -37,7 +36,7 @@ describe('runUtils', function() {
 					expect(Runner.createAsync).to.be.calledWith(settings);
 					expect(runner.runAsync).to.be.calledOnce;
 					expect(runner.runAsync).to.be.calledOn(runner);
-					expect(result).to.equal(best.chromosome);
+					expect(result).to.equal(runResult);
 				});
 		});
 	});

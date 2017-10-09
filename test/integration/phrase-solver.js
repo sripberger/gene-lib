@@ -14,7 +14,7 @@ describe('Phrase Solver', function() {
 			createArg: target
 		});
 
-		expect(result.str).to.equal(target);
+		expect(result.best.chromosome.str).to.equal(target);
 	});
 
 	it('works with weighted ternary tournament selection', function() {
@@ -29,7 +29,7 @@ describe('Phrase Solver', function() {
 			}
 		});
 
-		expect(result.str).to.equal(target);
+		expect(result.best.chromosome.str).to.equal(target);
 	});
 
 	it('works with roulette selection', function() {
@@ -41,7 +41,7 @@ describe('Phrase Solver', function() {
 			selector: 'roulette'
 		});
 
-		expect(result.str).to.equal(target);
+		expect(result.best.chromosome.str).to.equal(target);
 	});
 
 	it('works with asynchronous operations', function() {
@@ -53,7 +53,7 @@ describe('Phrase Solver', function() {
 			selectorClass: AsyncSelector
 		})
 			.then((result) => {
-				expect(result.str).to.equal(target);
+				expect(result.best.chromosome.str).to.equal(target);
 			});
 	});
 
@@ -66,7 +66,7 @@ describe('Phrase Solver', function() {
 			async: {}
 		})
 			.then((result) => {
-				expect(result.str).to.equal(target);
+				expect(result.best.chromosome.str).to.equal(target);
 			});
 	});
 });

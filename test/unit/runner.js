@@ -178,6 +178,27 @@ describe('Runner', function() {
 		});
 	});
 
+	describe('#getResult', function() {
+		it('returns best and individuals array', function() {
+			let population = new Population([
+				new TestIndividual('foo'),
+				new TestIndividual('bar')
+			]);
+			let runner = new Runner(population);
+			let best = new TestIndividual('best');
+			sandbox.stub(runner, 'getBest').returns(best);
+
+			let result = runner.getResult();
+
+			expect(runner.getBest).to.be.calledOnce;
+			expect(runner.getBest).to.be.calledOn(runner);
+			expect(result).to.deep.equal({
+				best,
+				individuals: population.individuals
+			});
+		});
+	});
+
 	describe('#runGenerationSync', function() {
 		it('synchronously runs a single generation', function() {
 			let foo = new TestIndividual('foo');
@@ -373,29 +394,29 @@ describe('Runner', function() {
 	});
 
 	describe('#runSync', function() {
-		let runner, best;
+		let runner, runResult;
 
 		beforeEach(function() {
 			runner = new Runner(new Population, { generationLimit: 3 });
-			best = new TestIndividual('best');
+			runResult = { foo: 'bar' };
 
 			sinon.stub(runner, 'runStepSync').callsFake(() => {
 				runner.generationCount += 1;
 			});
-			sinon.stub(runner, 'getBest').returns(best);
+			sinon.stub(runner, 'getResult').returns(runResult);
 		});
 
-		it('returns best individual after reaching generationLimit', function() {
+		it('returns result after reaching generationLimit', function() {
 			let result = runner.runSync();
 
 			expect(runner.runStepSync).to.be.calledThrice;
 			expect(runner.runStepSync).to.always.be.calledOn(runner);
-			expect(runner.getBest).to.be.calledOnce;
-			expect(runner.getBest).to.be.calledOn(runner);
-			expect(result).to.equal(best);
+			expect(runner.getResult).to.be.calledOnce;
+			expect(runner.getResult).to.be.calledOn(runner);
+			expect(result).to.equal(runResult);
 		});
 
-		it('returns best individual after finding solution', function() {
+		it('returns result after finding solution', function() {
 			runner.runStepSync.onSecondCall().callsFake(() => {
 				runner.generationCount += 1;
 				runner.solution = new TestIndividual('solution');
@@ -405,24 +426,24 @@ describe('Runner', function() {
 
 			expect(runner.runStepSync).to.be.calledTwice;
 			expect(runner.runStepSync).to.always.be.calledOn(runner);
-			expect(runner.getBest).to.be.calledOnce;
-			expect(runner.getBest).to.be.calledOn(runner);
-			expect(result).to.equal(best);
+			expect(runner.getResult).to.be.calledOnce;
+			expect(runner.getResult).to.be.calledOn(runner);
+			expect(result).to.equal(runResult);
 		});
 	});
 
 	describe('#runAsync', function() {
-		let runner, best;
+		let runner, runResult;
 
 		beforeEach(function() {
 			runner = new Runner(new Population, { generationLimit: 10 });
-			best = new TestIndividual('best');
+			runResult = { foo: 'bar' };
 
 			sandbox.stub(pasync, 'whilst').resolves();
-			sinon.stub(runner, 'getBest').returns(best);
+			sinon.stub(runner, 'getResult').returns(runResult);
 		});
 
-		it('resolves with best individual after pasync::whilst', function() {
+		it('resolves with result after pasync::whilst', function() {
 			return runner.runAsync()
 				.then((result) => {
 					expect(pasync.whilst).to.be.calledOnce;
@@ -431,9 +452,9 @@ describe('Runner', function() {
 						sinon.match.func,
 						sinon.match.func
 					);
-					expect(runner.getBest).to.be.calledOnce;
-					expect(runner.getBest).to.be.calledOn(runner);
-					expect(result).to.equal(best);
+					expect(runner.getResult).to.be.calledOnce;
+					expect(runner.getResult).to.be.calledOn(runner);
+					expect(result).to.equal(runResult);
 				})
 				.then(() => {
 					// Test rejection to ensure we aren't resolving early.
