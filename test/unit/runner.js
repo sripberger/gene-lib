@@ -1,4 +1,5 @@
 const Runner = require('../../lib/runner');
+const EventEmitter = require('events');
 const sinon = require('sinon');
 const pasync = require('pasync');
 const BreedingScheme = require('../../lib/breeding-scheme');
@@ -7,6 +8,12 @@ const Population = require('../../lib/population');
 const TestIndividual = require('../lib/test-individual');
 
 describe('Runner', function() {
+	it('extends EventEmitter', function() {
+		let runner = new Runner(new Population());
+
+		expect(runner).to.be.an.instanceof(EventEmitter);
+	});
+
 	it('initializes instance with provided population and settings', function() {
 		let population = new Population();
 		let settings = { foo: 'bar' };
@@ -23,6 +30,15 @@ describe('Runner', function() {
 		let runner = new Runner(new Population());
 
 		expect(runner.settings).to.deep.equal({});
+	});
+
+	it('attaches endGeneration handler from settings', function() {
+		let onGeneration = sinon.spy(function onGeneration() {});
+		let runner = new Runner(new Population(), { onGeneration });
+
+		runner.emit('generation');
+
+		expect(onGeneration).to.be.calledOnce;
 	});
 
 	describe('::createSync', function() {
@@ -319,15 +335,18 @@ describe('Runner', function() {
 	});
 
 	describe('#runStepSync', function() {
-		let runner;
+		let runner, result;
 
 		beforeEach(function() {
 			runner = new Runner();
+			result = { foo: 'bar' };
 			sinon.stub(runner, 'checkForSolution');
 			sinon.stub(runner, 'runGenerationSync');
+			sinon.stub(runner, 'getResult').returns(result);
+			sinon.spy(runner, 'emit');
 		});
 
-		it('checks for solution, then synchronously runs a generation', function() {
+		it('checks for solution, runs a generation, then emits generation event', function() {
 			runner.runStepSync();
 
 			expect(runner.checkForSolution).to.be.calledOnce;
@@ -337,6 +356,14 @@ describe('Runner', function() {
 			expect(runner.runGenerationSync).to.be.calledAfter(
 				runner.checkForSolution
 			);
+			expect(runner.getResult).to.be.calledOnce;
+			expect(runner.getResult).to.be.calledOn(runner);
+			expect(runner.getResult).to.be.calledAfter(
+				runner.runGenerationSync
+			);
+			expect(runner.emit).to.be.calledOnce;
+			expect(runner.emit).to.be.calledOn(runner);
+			expect(runner.emit).to.be.calledWith('generation', result);
 		});
 
 		it('skips running generation if solution is found', function() {
@@ -347,20 +374,24 @@ describe('Runner', function() {
 			runner.runStepSync();
 
 			expect(runner.runGenerationSync).to.not.be.called;
+			expect(runner.getResult).to.not.be.called;
+			expect(runner.emit).to.not.be.called;
 		});
 	});
 
 	describe('#runStepAsync', function() {
-		let runner;
+		let runner, result;
 
 		beforeEach(function() {
 			runner = new Runner();
-
+			result = { foo: 'bar' };
 			sinon.stub(runner, 'checkForSolution');
 			sinon.stub(runner, 'runGenerationAsync').resolves();
+			sinon.stub(runner, 'getResult').returns(result);
+			sinon.spy(runner, 'emit');
 		});
 
-		it('checks for solution, then runs a generation', function() {
+		it('checks for solution, runs a generation, then emits generation event', function() {
 			return runner.runStepAsync()
 				.then(() => {
 					expect(runner.checkForSolution).to.be.calledOnce;
@@ -370,14 +401,28 @@ describe('Runner', function() {
 					expect(runner.runGenerationAsync).to.be.calledAfter(
 						runner.checkForSolution
 					);
+					expect(runner.getResult).to.be.calledOnce;
+					expect(runner.getResult).to.be.calledOn(runner);
+					expect(runner.getResult).to.be.calledAfter(
+						runner.runGenerationAsync
+					);
+					expect(runner.emit).to.be.calledOnce;
+					expect(runner.emit).to.be.calledOn(runner);
+					expect(runner.emit).to.be.calledWith('generation', result);
 				})
 				.then(() => {
-					// Test rejection to ensure we aren't resolving early.
+					// Test rejection to ensure we aren't resolving or emitting
+					// early.
 					runner.runGenerationAsync.rejects();
+					runner.getResult.resetHistory();
+					runner.emit.reset();
 					return runner.runStepAsync()
 						.then(() => {
 							throw new Error('Promise should have rejected.');
-						}, () => {});
+						}, () => {
+							expect(runner.getResult).to.not.be.called;
+							expect(runner.emit).to.not.be.called;
+						});
 				});
 		});
 
@@ -389,6 +434,8 @@ describe('Runner', function() {
 			return runner.runStepAsync()
 				.then(() => {
 					expect(runner.runGenerationAsync).to.not.be.called;
+					expect(runner.getResult).to.not.be.called;
+					expect(runner.emit).to.not.be.called;
 				});
 		});
 	});

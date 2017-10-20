@@ -1,7 +1,9 @@
 # TODO
 
 ## For 1.0.0
-- `end-generation` hook for custom logging, etc.
+- Add generation count to result.
+    - Add to README.
+- Add `end-generation` hook to README.
 - Better error messages for async configuration mistakes.
 - Child count checks after each crossover call.
 - Split `::run` into `::run` and `::runSync`.
