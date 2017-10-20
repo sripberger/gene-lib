@@ -1,7 +1,6 @@
 # TODO
 
 ## For 1.0.0
-- Add `onGeneration` integration test.
 - Child count checks after each crossover call.
 - Split `::run` into `::run` and `::runSync`.
     - Make `::run` put each generation run on back of event loop queue, so as

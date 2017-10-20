@@ -69,4 +69,20 @@ describe('Phrase Solver', function() {
 				expect(result.best.chromosome.str).to.equal(target);
 			});
 	});
+
+	it('supports onGeneration setting', function() {
+		let generationCounts = [];
+		geneLib.run({
+			generationSize: 100,
+			generationLimit: 5,
+			chromosomeClass: Phrase,
+			createArg: target,
+			solutionFitness: false,
+			onGeneration: (state) => {
+				generationCounts.push(state.generationCount);
+			}
+		});
+
+		expect(generationCounts).to.deep.equal([ 0, 1, 2, 3, 4, 5 ]);
+	});
 });
