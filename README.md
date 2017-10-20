@@ -63,7 +63,16 @@ let result = geneLib.run({
 });
 
 console.log(result);
-// `result` will be the best instance of MyChromosome produced by the GA.
+// {
+// 	best: {
+// 		fitness: Highest fitness produced by the GA,
+// 		chromosome: Best MyChromosome instance produced by the GA
+// 	},
+// 	individuals: [
+// 		Array of all individuals in final generation, each with the same
+// 		properties as `best` above.
+// 	]
+// }
 ```
 
 
