@@ -195,13 +195,14 @@ describe('Runner', function() {
 	});
 
 	describe('#getResult', function() {
-		it('returns best and individuals array', function() {
+		it('returns generationCount, best, and individuals', function() {
 			let population = new Population([
 				new TestIndividual('foo'),
 				new TestIndividual('bar')
 			]);
 			let runner = new Runner(population);
 			let best = new TestIndividual('best');
+			runner.generationCount = 42;
 			sandbox.stub(runner, 'getBest').returns(best);
 
 			let result = runner.getResult();
@@ -209,6 +210,7 @@ describe('Runner', function() {
 			expect(runner.getBest).to.be.calledOnce;
 			expect(runner.getBest).to.be.calledOn(runner);
 			expect(result).to.deep.equal({
+				generationCount: runner.generationCount,
 				best,
 				individuals: population.individuals
 			});

@@ -63,16 +63,19 @@ let result = geneLib.run({
 });
 
 console.log(result);
-// {
-// 	best: {
-// 		fitness: Highest fitness produced by the GA,
-// 		chromosome: Best MyChromosome instance produced by the GA
-// 	},
-// 	individuals: [
-// 		Array of all individuals in final generation, each with the same
-// 		properties as `best` above.
-// 	]
-// }
+/*
+{
+	generationCount: Number of generations that were run.
+	best: {
+		fitness: Highest fitness produced by the GA,
+		chromosome: Best MyChromosome instance produced by the GA
+	},
+	individuals: [
+		Array of all individuals in final generation, each with the same
+		properties as `best` above.
+	]
+}
+*/
 ```
 
 
