@@ -141,6 +141,10 @@ console.log(result);
 	- **async.getFitness**: Setting for chromosome `#getFitness` operations.
 	- **async.crossover**: Setting for chromosome `#crossover` operations.
 	- **async.mutate**: Setting for chromosome `#mutate` operations.
+- **onGeneration**: A function that will be invoked after each generation,
+  including the 0-th generation. Receives an argument indicating the current
+  state of the algorithm, in the same format as the final result, described
+  above.
 
 
 ## Class-Level Settings
