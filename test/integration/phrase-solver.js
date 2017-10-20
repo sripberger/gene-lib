@@ -7,18 +7,19 @@ describe('Phrase Solver', function() {
 	const target = 'hello, world!';
 
 	it('works with deterministic binary tournament selection', function() {
-		let result = geneLib.run({
+		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
 			chromosomeClass: Phrase,
 			createArg: target
-		});
-
-		expect(result.best.chromosome.str).to.equal(target);
+		})
+			.then((result) => {
+				expect(result.best.chromosome.str).to.equal(target);
+			});
 	});
 
 	it('works with weighted ternary tournament selection', function() {
-		let result = geneLib.run({
+		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
 			chromosomeClass: Phrase,
@@ -27,24 +28,26 @@ describe('Phrase Solver', function() {
 				tournamentSize: 3,
 				baseWeight: 0.75
 			}
-		});
-
-		expect(result.best.chromosome.str).to.equal(target);
+		})
+			.then((result) => {
+				expect(result.best.chromosome.str).to.equal(target);
+			});
 	});
 
 	it('works with roulette selection', function() {
-		let result = geneLib.run({
+		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
 			chromosomeClass: Phrase,
 			createArg: target,
 			selector: 'roulette'
-		});
-
-		expect(result.best.chromosome.str).to.equal(target);
+		})
+			.then((result) => {
+				expect(result.best.chromosome.str).to.equal(target);
+			});
 	});
 
-	it('works with asynchronous operations', function() {
+	it('works with asynchronous component operations', function() {
 		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 1000,
@@ -57,22 +60,9 @@ describe('Phrase Solver', function() {
 			});
 	});
 
-	it('works asynchronously with synchronous operations', function() {
-		return geneLib.run({
-			generationSize: 100,
-			generationLimit: 1000,
-			chromosomeClass: Phrase,
-			createArg: target,
-			async: {}
-		})
-			.then((result) => {
-				expect(result.best.chromosome.str).to.equal(target);
-			});
-	});
-
-	it('supports onGeneration setting', function() {
+	it('supports onGeneration hook', function() {
 		let generationCounts = [];
-		geneLib.run({
+		return geneLib.run({
 			generationSize: 100,
 			generationLimit: 5,
 			chromosomeClass: Phrase,
@@ -81,8 +71,20 @@ describe('Phrase Solver', function() {
 			onGeneration: (state) => {
 				generationCounts.push(state.generationCount);
 			}
+		})
+			.then(() => {
+				expect(generationCounts).to.deep.equal([ 0, 1, 2, 3, 4, 5 ]);
+			});
+	});
+
+	it('supports fully synchronous operation', function() {
+		let result = geneLib.runSync({
+			generationSize: 100,
+			generationLimit: 1000,
+			chromosomeClass: Phrase,
+			createArg: target
 		});
 
-		expect(generationCounts).to.deep.equal([ 0, 1, 2, 3, 4, 5 ]);
+		expect(result.best.chromosome.str).to.equal(target);
 	});
 });
