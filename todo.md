@@ -1,7 +1,6 @@
 # TODO
 
 ## For 1.0.0
-- Support disabling of `solutionFitness` by setting to `false`
 - Add `onGeneration` integration test.
 - Child count checks after each crossover call.
 - Split `::run` into `::run` and `::runSync`.

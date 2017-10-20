@@ -113,7 +113,8 @@ console.log(result);
   is found, as specified by the solutionFitness setting.
 - **solutionFitness**: If an individual ever meets or exceeds this fitness,
   the algorithm will stop and return that individual, even if the
-  generationLimit has not yet been reached. Defaults to Infinity.
+  generationLimit has not yet been reached. Defaults to Infinity. Set to false
+  to disable this behavior completely.
 - **crossoverRate**: The fraction of individuals in each generation that should
   be produced through crossover operations, on average. Defaults to zero. You'll
   want to set either this, the mutationRate, or both, otherwise generations will

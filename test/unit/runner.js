@@ -166,6 +166,28 @@ describe('Runner', function() {
 				expect(runner.solution).to.equal(null);
 			});
 		});
+
+		context('settings.solutionFitness is false', function() {
+			it('returns without doing anything', function() {
+				runner.settings.solutionFitness = false;
+
+				runner.checkForSolution();
+
+				expect(population.getBest).to.not.be.called;
+				expect(runner.solution).to.equal(null);
+			});
+		});
+
+		it('settings.solutionFitness is zero', function() {
+			it('behaves normally', function() {
+				runner.settings.solutionFitness = 0;
+				best.fitness = 1;
+
+				runner.checkForSolution();
+
+				expect(runner.solution).to.equal(best);
+			});
+		});
 	});
 
 	describe('#getBest', function() {

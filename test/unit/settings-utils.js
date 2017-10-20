@@ -414,20 +414,26 @@ describe('settingsUtils', function() {
 				});
 		});
 
-		it('throws invalid argument if solutionFitness is not a number', function() {
+		it('throws invalid argument if solutionFitness is not a number or false', function() {
 			settings.solutionFitness = { foo: 'bar' };
 
 			expect(() => settingsUtils.validate(settings))
 				.to.throw(XError).that.satisfies((err) => {
 					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
 					expect(err.message).to.equal(
-						'solutionFitness must be a number.'
+						'solutionFitness must be a number or false.'
 					);
 					expect(err.data).to.deep.equal({
 						solutionFitness: settings.solutionFitness
 					});
 					return true;
 				});
+		});
+
+		it('allows false as solutionFitness', function() {
+			settings.solutionFitness = false;
+
+			expect(settingsUtils.validate(settings)).to.equal(settings);
 		});
 
 		it('throws invalid argument if crossoverRate is not a number', function() {
