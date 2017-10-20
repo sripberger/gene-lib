@@ -194,7 +194,7 @@ describe('Runner', function() {
 		});
 	});
 
-	describe('#getResult', function() {
+	describe('#getState', function() {
 		it('returns generationCount, best, and individuals', function() {
 			let population = new Population([
 				new TestIndividual('foo'),
@@ -205,7 +205,7 @@ describe('Runner', function() {
 			runner.generationCount = 42;
 			sandbox.stub(runner, 'getBest').returns(best);
 
-			let result = runner.getResult();
+			let result = runner.getState();
 
 			expect(runner.getBest).to.be.calledOnce;
 			expect(runner.getBest).to.be.calledOn(runner);
@@ -220,17 +220,17 @@ describe('Runner', function() {
 	describe('#emitGeneration', function() {
 		it('emits generation event with result', function() {
 			let runner = new Runner(new Population());
-			let result = { foo: 'bar' };
-			sinon.stub(runner, 'getResult').returns(result);
+			let state = { foo: 'bar' };
+			sinon.stub(runner, 'getState').returns(state);
 			sinon.spy(runner, 'emit');
 
 			runner.emitGeneration();
 
-			expect(runner.getResult).to.be.calledOnce;
-			expect(runner.getResult).to.be.calledOn(runner);
+			expect(runner.getState).to.be.calledOnce;
+			expect(runner.getState).to.be.calledOn(runner);
 			expect(runner.emit).to.be.calledOnce;
 			expect(runner.emit).to.be.calledOn(runner);
-			expect(runner.emit).to.be.calledWith('generation', result);
+			expect(runner.emit).to.be.calledWith('generation', state);
 		});
 	});
 
@@ -446,29 +446,36 @@ describe('Runner', function() {
 	});
 
 	describe('#runSync', function() {
-		let runner, runResult;
+		let runner, state;
 
 		beforeEach(function() {
 			runner = new Runner(new Population, { generationLimit: 3 });
-			runResult = { foo: 'bar' };
+			state = { foo: 'bar' };
 
+			sinon.stub(runner, 'emitGeneration');
 			sinon.stub(runner, 'runStepSync').callsFake(() => {
 				runner.generationCount += 1;
 			});
-			sinon.stub(runner, 'getResult').returns(runResult);
+			sinon.stub(runner, 'getState').returns(state);
 		});
 
-		it('returns result after reaching generationLimit', function() {
+		it('returns state after reaching generationLimit', function() {
 			let result = runner.runSync();
 
+			expect(runner.emitGeneration).to.be.calledOnce;
+			expect(runner.emitGeneration).to.be.calledOn(runner);
 			expect(runner.runStepSync).to.be.calledThrice;
 			expect(runner.runStepSync).to.always.be.calledOn(runner);
-			expect(runner.getResult).to.be.calledOnce;
-			expect(runner.getResult).to.be.calledOn(runner);
-			expect(result).to.equal(runResult);
+			expect(runner.runStepSync).to.always.be.calledAfter(
+				runner.emitGeneration
+			);
+			expect(runner.getState).to.be.calledOnce;
+			expect(runner.getState).to.be.calledOn(runner);
+			expect(runner.getState).to.be.calledAfter(runner.runStepSync);
+			expect(result).to.equal(state);
 		});
 
-		it('returns result after finding solution', function() {
+		it('returns state after finding solution', function() {
 			runner.runStepSync.onSecondCall().callsFake(() => {
 				runner.generationCount += 1;
 				runner.solution = new TestIndividual('solution');
@@ -476,37 +483,46 @@ describe('Runner', function() {
 
 			let result = runner.runSync();
 
+			expect(runner.emitGeneration).to.be.calledOnce;
+			expect(runner.emitGeneration).to.be.calledOn(runner);
 			expect(runner.runStepSync).to.be.calledTwice;
 			expect(runner.runStepSync).to.always.be.calledOn(runner);
-			expect(runner.getResult).to.be.calledOnce;
-			expect(runner.getResult).to.be.calledOn(runner);
-			expect(result).to.equal(runResult);
+			expect(runner.getState).to.be.calledOnce;
+			expect(runner.getState).to.be.calledOn(runner);
+			expect(runner.getState).to.be.calledAfter(runner.runStepSync);
+			expect(result).to.equal(state);
 		});
 	});
 
 	describe('#runAsync', function() {
-		let runner, runResult;
+		let runner, state;
 
 		beforeEach(function() {
 			runner = new Runner(new Population, { generationLimit: 10 });
-			runResult = { foo: 'bar' };
+			state = { foo: 'bar' };
 
+			sinon.stub(runner, 'emitGeneration');
 			sandbox.stub(pasync, 'whilst').resolves();
-			sinon.stub(runner, 'getResult').returns(runResult);
+			sinon.stub(runner, 'getState').returns(state);
 		});
 
 		it('resolves with result after pasync::whilst', function() {
 			return runner.runAsync()
 				.then((result) => {
+					expect(runner.emitGeneration).to.be.calledOnce;
+					expect(runner.emitGeneration).to.be.calledOn(runner);
 					expect(pasync.whilst).to.be.calledOnce;
 					expect(pasync.whilst).to.be.calledOn(pasync);
 					expect(pasync.whilst).to.be.calledWith(
 						sinon.match.func,
 						sinon.match.func
 					);
-					expect(runner.getResult).to.be.calledOnce;
-					expect(runner.getResult).to.be.calledOn(runner);
-					expect(result).to.equal(runResult);
+					expect(pasync.whilst).to.be.calledAfter(
+						runner.emitGeneration
+					);
+					expect(runner.getState).to.be.calledOnce;
+					expect(runner.getState).to.be.calledOn(runner);
+					expect(result).to.equal(state);
 				})
 				.then(() => {
 					// Test rejection to ensure we aren't resolving early.
