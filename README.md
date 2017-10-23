@@ -53,30 +53,37 @@ selection method defaults to deterministic binary tournament:
 const geneLib = require('gene-lib');
 const MyChromosome = require('./path/to/my-chromosome');
 
-let result = geneLib.run({
+geneLib.run({
 	chromosomeClass: MyChromosome,
 	generationSize: 100,
 	generationLimit: 1000,
 	createArg: 'create argument',
 	crossoverRate: 0.2,
 	mutationRate: 0.05
-});
-
-console.log(result);
-/*
-{
-	generationCount: Number of generations that were run.
-	best: {
-		fitness: Highest fitness produced by the GA,
-		chromosome: Best MyChromosome instance produced by the GA
-	},
-	individuals: [
-		Array of all individuals in final generation, each with the same
-		properties as `best` above.
-	]
-}
-*/
+})
+	.then(() => {
+		console.log(result);
+		/*
+		{
+			generationCount: Number of generations that were run.
+			best: {
+				fitness: Highest fitness produced by the GA,
+				chromosome: Best MyChromosome instance produced by the GA
+			},
+			individuals: [
+				Array of all individuals in final generation, each
+				with the same properties as `best` above.
+			]
+		}
+		*/
+	});
 ```
+
+The `::run` method will place processing for each generation at the end of the
+event loop queue. This helps prevent it from blocking execution for too long,
+which you definitely want in most cases. See the first entry in
+[this article](https://www.toptal.com/nodejs/top-10-common-nodejs-developer-mistakes)
+for a great explanation of why this is.
 
 
 ## Run Method Settings
@@ -260,13 +267,16 @@ module.exports = ManualChromosome;
 const geneLib = require('gene-lib');
 const ManualChromosome = require('./path/to/manual-chromosome');
 
-let result = geneLib.run({
+geneLib.run({
 	chromosomeClass: ManualChromosome
 	generationSize: 100
 	generationLimit: 1000,
 	crossoverRate: 0.5,
 	manualCrossoverCheck: true
-});
+})
+	.then((result) => {
+		// ...
+	});
 ```
 
 
@@ -312,14 +322,17 @@ module.exports = WeirdChromosome;
 const geneLib = require('gene-lib');
 const WeirdChromosome = require('./path/to/weird-chromosome');
 
-let result = geneLib.run({
+geneLib.run({
 	chromosomeClass: WeirdChromosome
 	generationSize: 100
 	generationLimit: 1000,
 	crossoverRate: 0.7,
 	parentCount: 3,
 	childCount: 1
-});
+})
+	.then((result) => {
+		// ...
+	});
 ```
 
 
@@ -394,14 +407,17 @@ const geneLib = require('geneLib');
 const MyChromosome = require('./path/to/my-chromosome');
 const MySelector = require('./path/to/my-selector');
 
-let result = geneLib.run({
+geneLib.run({
 	chromosomeClass: MyChromosome,
 	selectorClass: MySelector,
 	generationSize: 100,
 	generationLimit: 1000,
 	crossoverRate: 0.7,
 	mutationRate: 0.01
-});
+})
+	.then((result) => {
+		// ...
+	});
 
 ```
 
@@ -442,14 +458,17 @@ geneLib.registerSelector('my-selector', MySelector);
 const geneLib = require('geneLib');
 const MyChromosome = require('./path/to/my-chromosome');
 
-let result = geneLib.run({
+geneLib.run({
 	chromosomeClass: MyChromosome,
 	selector: 'my-selector',
 	generationSize: 100,
 	generationLimit: 1000,
 	crossoverRate: 0.7,
 	mutationRate: 0.01
-});
+})
+	.then((result) => {
+		// ...
+	});
 ```
 
 
@@ -487,8 +506,7 @@ geneLib.run({
 	}
 })
 	.then((result) => {
-		// As you can see, since async was set, ::run now returns a promise
-		// that will resolve with the result.
+		// ...
 	});
 ```
 
@@ -521,7 +539,7 @@ geneLib.run({
 	}
 })
 	.then((result) => {
-		// This will probably be really slow, but you can do it if you want.
+		// ...
 	});
 ```
 
@@ -548,15 +566,46 @@ geneLib.run({
 	}
 })
 	.then((result) => {
-		// This will allow 4 concurrent ::create calls during the chromosome
-		// creation stage, and 2 concurrent #getFitness calls during fitness
-		// calculation stages.
+		// ...
 	});
 ```
 
 If concurrent operations involve a request to some external service-- as they
 often will-- make sure not to set these concurrencies too high, otherwise
 you might overload that service with simultaneous requests.
+
+
+## Fully Synchronous Operation
+
+If you're 100% sure that you won't need to unblock execution for the entire
+run, you can force it to take place in a single event loop iteration using the
+`::runSync` method:
+
+```js
+const geneLib = require('gene-lib');
+const MyChromosome = require('./path/to/my-chromosome');
+
+let result = geneLib.runSync({
+	chromosomeClass: MyChromosome,
+	generationSize: 100,
+	generationLimit: 1000,
+	createArg: 'create argument',
+	crossoverRate: 0.2,
+	mutationRate: 0.05
+});
+
+// ...
+```
+
+As you can see, the result is returned directly instead of being wrapped in a
+promise. Of course, when using this method, none of the `async` settings above
+are supported. This method will throw if you attempt to use them.
+
+This method will be slightly faster than `::run` and maybe a little more
+convenient in some cases, but save yourself some trouble and avoid using it in
+web services or other multi-user applications. You should *only* use it if
+you're writing a command-line script or some other application that does not
+need to share its thread.
 
 
 ## Utility Methods
