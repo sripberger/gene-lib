@@ -1,4 +1,5 @@
 const geneLib = require('../../lib');
+const pasync = require('pasync');
 const Phrase = require('../lib/phrase');
 const AsyncPhrase = require('../lib/async-phrase');
 const AsyncSelector = require('../lib/async-selector');
@@ -77,7 +78,27 @@ describe('Phrase Solver', function() {
 			});
 	});
 
-	it('supports fully synchronous operation', function() {
+	it('does not block for entire normal operation', function() {
+		let runFinished = false;
+		let runPromise = geneLib.run({
+			generationSize: 100,
+			generationLimit: 500,
+			chromosomeClass: Phrase,
+			createArg: target,
+			solutionFitness: false,
+		})
+			.then(() => {
+				runFinished = true;
+			});
+		let otherPromise = pasync.setTimeout(10)
+			.then(() => {
+				expect(runFinished).to.be.false;
+			});
+
+		return Promise.all([ runPromise, otherPromise ]);
+	});
+
+	it('supports blocking, fully synchronous operation', function() {
 		let result = geneLib.runSync({
 			generationSize: 100,
 			generationLimit: 1000,

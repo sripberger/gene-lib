@@ -598,24 +598,38 @@ describe('Runner', function() {
 				return runner.runAsync()
 					.then(() => {
 						iteratee = pasync.whilst.firstCall.args[1];
+						sandbox.stub(pasync, 'setImmediate').resolves();
+						sinon.stub(runner, 'runStepAsync').resolves();
 					});
 			});
 
-			it('resolves after #runStepAsync', function() {
-				sinon.stub(runner, 'runStepAsync').resolves();
-
+			it('resolves after pasync::setImmediate followed by #runStepAsync', function() {
 				return iteratee()
 					.then(() => {
+						expect(pasync.setImmediate).to.be.calledOnce;
 						expect(runner.runStepAsync).to.be.calledOnce;
 						expect(runner.runStepAsync).to.be.calledOn(runner);
 					})
 					.then(() => {
-						// Test rejection to ensure we aren't resolving early.
+						// Test #runStepAsync rejection to ensure we aren't
+						// resolving early.
 						runner.runStepAsync.rejects();
 						return iteratee()
 							.then(() => {
 								throw new Error('Promise should have rejected.');
 							}, () => {});
+					})
+					.then(() => {
+						// Test pasync::setImmediate rejection to ensure we
+						// aren't calling #runStepAsync early.
+						pasync.setImmediate.rejects();
+						runner.runStepAsync.resetHistory();
+						return iteratee()
+							.then(() => {
+								throw new Error('Promise should have rejected.');
+							}, () => {
+								expect(runner.runStepAsync).to.not.be.called;
+							});
 					});
 			});
 		});
