@@ -61,7 +61,7 @@ geneLib.run({
 	crossoverRate: 0.2,
 	mutationRate: 0.05
 })
-	.then(() => {
+	.then((result) => {
 		console.log(result);
 		/*
 		{
@@ -106,7 +106,7 @@ for a great explanation of why this is.
 - **selectorClass**: Instead of using the selector option, you may specify a
   custom selector class directly here.
 - **selectorSettings**: Specify options specific to your selection method, as
-  a nested object. Check the documentation for your selecor for more info.
+  a nested object. Check the documentation for your selector for more info.
   In the case of tournament selection, you can specify the following:
     - **tournamentSize**: Number of individuals selected for the tournament.
       Defaults to 2, for binary tournament.
@@ -130,7 +130,7 @@ for a great explanation of why this is.
   crossover operations. See 'Manual Crossover Checks' below for more
   information.
 - **parentCount**: Can be used to specify the number of parents per crossover
-  operation. Must be an integer greater than 1. Defaults to 2. See 'Unsusual
+  operation. Must be an integer greater than 1. Defaults to 2. See 'Unusual
   Crossovers' below for more information.
 - **childCount**: Can be used to specify the number of children per crossover
   operation. Must be a positive integer that is also a factor of the
@@ -140,7 +140,7 @@ for a great explanation of why this is.
   to set either this, the crossoverRate, or both, otherwise generations will not
   evolve and your GA will do nothing useful.
 - **async**: Set to specify asynchronous operation. Set any of its properties
-  to true to cause that operation to become asynchronouse. Set a property to a
+  to true to cause that operation to become asynchronous. Set a property to a
   number to specify concurrency, which is otherwise assumed to be 1. See the
   'Asynchronous Operations' section below for more information.
     - **async.add**: Setting for selector `#add` operations.
@@ -228,7 +228,7 @@ without invoking the `crossover` method at all. This is what allows you to
 skip implementing the `crossover` method if your crossover rate is zero.
 
 This is great for most genetic algorithms, where crossovers either do or don't
-happen on at the chromosome level. Sometimes, however, it's useful to break your
+happen at the chromosome level. Sometimes, however, it's useful to break your
 chromosomes down into component genes, each of which may or may not cross over
 with its counterpart gene in another chromosome.
 
