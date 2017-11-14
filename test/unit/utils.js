@@ -3,12 +3,12 @@ const _ = require('lodash');
 const boolChance = require('bool-chance');
 
 describe('utils', function() {
-	describe('::getCrossoverPoint', function() {
+	describe('::getRandomIndex', function() {
 		it('returns a random index between 0 and length', function() {
 			let length = 10;
 			sandbox.stub(_, 'random').returns(3);
 
-			let result = utils.getCrossoverPoint(length);
+			let result = utils.getRandomIndex(length);
 
 			expect(_.random).to.be.calledOnce;
 			expect(_.random).to.be.calledOn(_);
@@ -17,36 +17,36 @@ describe('utils', function() {
 		});
 	});
 
-	describe('::getCrossoverRange', function() {
+	describe('::getRandomRange', function() {
 		const length = 10;
 
 		beforeEach(function() {
-			sandbox.stub(utils, 'getCrossoverPoint');
+			sandbox.stub(utils, 'getRandomIndex');
 		});
 
-		it('returns two crossover points', function() {
-			utils.getCrossoverPoint
+		it('returns two random indices', function() {
+			utils.getRandomIndex
 				.onFirstCall().returns(3)
 				.onSecondCall().returns(7);
 
-			let result = utils.getCrossoverRange(length);
+			let result = utils.getRandomRange(length);
 
-			expect(utils.getCrossoverPoint).to.be.calledTwice;
-			expect(utils.getCrossoverPoint).to.always.be.calledOn(utils);
-			expect(utils.getCrossoverPoint).to.always.be.calledWith(length);
+			expect(utils.getRandomIndex).to.be.calledTwice;
+			expect(utils.getRandomIndex).to.always.be.calledOn(utils);
+			expect(utils.getRandomIndex).to.always.be.calledWith(length);
 			expect(result).to.deep.equal([ 3, 7 ]);
 		});
 
 		it('returns smaller of two results first', function() {
-			utils.getCrossoverPoint
+			utils.getRandomIndex
 				.onFirstCall().returns(7)
 				.onSecondCall().returns(3);
 
-			expect(utils.getCrossoverRange(length)).to.deep.equal([ 3, 7 ]);
+			expect(utils.getRandomRange(length)).to.deep.equal([ 3, 7 ]);
 		});
 	});
 
-	describe('::getCrossoverIndices', function() {
+	describe('::getRandomIndices', function() {
 		it('returns a set of indices for a uniform crossover', function() {
 			let length = 5;
 			sandbox.stub(boolChance, 'get')
@@ -56,7 +56,7 @@ describe('utils', function() {
 				.onCall(3).returns(false)
 				.onCall(4).returns(true);
 
-			let result = utils.getCrossoverIndices(length);
+			let result = utils.getRandomIndices(length);
 
 			expect(boolChance.get).to.have.callCount(length);
 			expect(boolChance.get).to.always.be.calledOn(boolChance);
@@ -65,12 +65,12 @@ describe('utils', function() {
 		});
 	});
 
-	describe('::pickCrossoverIndices', function() {
+	describe('::pickRandomIndices', function() {
 		it('returns random set of indices of half original length', function() {
 			let length = 5;
 			sandbox.stub(_, 'sampleSize').returns([ 1, 4 ]);
 
-			let result = utils.pickCrossoverIndices(length);
+			let result = utils.pickRandomIndices(length);
 
 			expect(_.sampleSize).to.be.calledOnce;
 			expect(_.sampleSize).to.be.calledOn(_);
@@ -81,7 +81,7 @@ describe('utils', function() {
 
 	describe('::singlePointCrossover', function() {
 		beforeEach(function() {
-			sandbox.stub(utils, 'getCrossoverPoint').returns(3);
+			sandbox.stub(utils, 'getRandomIndex').returns(3);
 		});
 
 		it('performs a single-point crossover', function() {
@@ -90,9 +90,9 @@ describe('utils', function() {
 
 			let result = utils.singlePointCrossover(left, right);
 
-			expect(utils.getCrossoverPoint).to.be.calledOnce;
-			expect(utils.getCrossoverPoint).to.be.calledOn(utils);
-			expect(utils.getCrossoverPoint).to.be.calledWith(left.length);
+			expect(utils.getRandomIndex).to.be.calledOnce;
+			expect(utils.getRandomIndex).to.be.calledOn(utils);
+			expect(utils.getRandomIndex).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([
 				[ 0, 1, 2, 8, 9 ],
 				[ 5, 6, 7, 3, 4 ]
@@ -105,16 +105,16 @@ describe('utils', function() {
 
 			let result = utils.singlePointCrossover(left, right);
 
-			expect(utils.getCrossoverPoint).to.be.calledOnce;
-			expect(utils.getCrossoverPoint).to.be.calledOn(utils);
-			expect(utils.getCrossoverPoint).to.be.calledWith(left.length);
+			expect(utils.getRandomIndex).to.be.calledOnce;
+			expect(utils.getRandomIndex).to.be.calledOn(utils);
+			expect(utils.getRandomIndex).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([ 'abcij', 'fghde' ]);
 		});
 	});
 
 	describe('::twoPointCrossover', function() {
 		beforeEach(function() {
-			sandbox.stub(utils, 'getCrossoverRange').returns([ 2, 4 ]);
+			sandbox.stub(utils, 'getRandomRange').returns([ 2, 4 ]);
 		});
 
 		it('performs a two-point crossover', function() {
@@ -123,9 +123,9 @@ describe('utils', function() {
 
 			let result = utils.twoPointCrossover(left, right);
 
-			expect(utils.getCrossoverRange).to.be.calledOnce;
-			expect(utils.getCrossoverRange).to.be.calledOn(utils);
-			expect(utils.getCrossoverRange).to.be.calledWith(left.length);
+			expect(utils.getRandomRange).to.be.calledOnce;
+			expect(utils.getRandomRange).to.be.calledOn(utils);
+			expect(utils.getRandomRange).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([
 				[ 0, 1, 7, 8, 4 ],
 				[ 5, 6, 2, 3, 9 ]
@@ -138,16 +138,16 @@ describe('utils', function() {
 
 			let result = utils.twoPointCrossover(left, right);
 
-			expect(utils.getCrossoverRange).to.be.calledOnce;
-			expect(utils.getCrossoverRange).to.be.calledOn(utils);
-			expect(utils.getCrossoverRange).to.be.calledWith(left.length);
+			expect(utils.getRandomRange).to.be.calledOnce;
+			expect(utils.getRandomRange).to.be.calledOn(utils);
+			expect(utils.getRandomRange).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([ 'abhie', 'fgcdj' ]);
 		});
 	});
 
 	describe('::uniformCrossover', function() {
 		beforeEach(function() {
-			sandbox.stub(utils, 'getCrossoverIndices').returns([ 1, 3, 4 ]);
+			sandbox.stub(utils, 'getRandomIndices').returns([ 1, 3, 4 ]);
 		});
 
 		it('performs a uniform crossover', function() {
@@ -156,9 +156,9 @@ describe('utils', function() {
 
 			let result = utils.uniformCrossover(left, right);
 
-			expect(utils.getCrossoverIndices).to.be.calledOnce;
-			expect(utils.getCrossoverIndices).to.be.calledOn(utils);
-			expect(utils.getCrossoverIndices).to.be.calledWith(left.length);
+			expect(utils.getRandomIndices).to.be.calledOnce;
+			expect(utils.getRandomIndices).to.be.calledOn(utils);
+			expect(utils.getRandomIndices).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([
 				[ 0, 6, 2, 8, 9 ],
 				[ 5, 1, 7, 3, 4 ]
@@ -171,16 +171,16 @@ describe('utils', function() {
 
 			let result = utils.uniformCrossover(left, right);
 
-			expect(utils.getCrossoverIndices).to.be.calledOnce;
-			expect(utils.getCrossoverIndices).to.be.calledOn(utils);
-			expect(utils.getCrossoverIndices).to.be.calledWith(left.length);
+			expect(utils.getRandomIndices).to.be.calledOnce;
+			expect(utils.getRandomIndices).to.be.calledOn(utils);
+			expect(utils.getRandomIndices).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([ 'agcij', 'fbhde' ]);
 		});
 	});
 
 	describe('::pmx', function() {
 		beforeEach(function() {
-			sandbox.stub(utils, 'getCrossoverRange').returns([ 2, 6 ]);
+			sandbox.stub(utils, 'getRandomRange').returns([ 2, 6 ]);
 		});
 
 		it('performs a partially-mapped crossover', function() {
@@ -189,9 +189,9 @@ describe('utils', function() {
 
 			let result = utils.pmx(left, right);
 
-			expect(utils.getCrossoverRange).to.be.calledOnce;
-			expect(utils.getCrossoverRange).to.be.calledOn(utils);
-			expect(utils.getCrossoverRange).to.be.calledWith(left.length);
+			expect(utils.getRandomRange).to.be.calledOnce;
+			expect(utils.getRandomRange).to.be.calledOn(utils);
+			expect(utils.getRandomRange).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([
 				[ 3, 5, 6, 7, 2, 1, 4 ],
 				[ 2, 7, 3, 4, 5, 6, 1 ]
@@ -204,9 +204,9 @@ describe('utils', function() {
 
 			let result = utils.pmx(left, right);
 
-			expect(utils.getCrossoverRange).to.be.calledOnce;
-			expect(utils.getCrossoverRange).to.be.calledOn(utils);
-			expect(utils.getCrossoverRange).to.be.calledWith(left.length);
+			expect(utils.getRandomRange).to.be.calledOnce;
+			expect(utils.getRandomRange).to.be.calledOn(utils);
+			expect(utils.getRandomRange).to.be.calledWith(left.length);
 			expect(result).to.deep.equal([ 'cefgbad', 'bgcdefa' ]);
 		});
 	});

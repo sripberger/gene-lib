@@ -12,11 +12,12 @@ Start by creating a chromosome class and implementing the required methods:
 const { Chromosome } = require('gene-lib');
 
 class MyChromosome extends Chromosome {
-	constructor() {
+	constructor(...args) {
+		super();
 		// Initialize MyChromosome instance, as needed.
 	}
 
-	static create(arg) {
+	static create(...args) {
 		// Return a new instance of MyChromosome for the first generation.
 		// Argument(s) can be specified in settings later.
 	}
@@ -57,7 +58,7 @@ geneLib.run({
 	chromosomeClass: MyChromosome,
 	generationSize: 100,
 	generationLimit: 1000,
-	createArg: 'create argument',
+	createArgs: [ 'foo', 'bar' ],
 	crossoverRate: 0.2,
 	mutationRate: 0.05
 })
@@ -184,7 +185,7 @@ or by simply assigning it:
 ```js
 const { Selector } = require('gene-lib');
 
-class MySelector extends Selector()  {
+class MySelector extends Selector  {
 	// Implement selector here...
 }
 
@@ -611,8 +612,8 @@ need to share its thread.
 ## Utility Methods
 
 In addition to everything described thus far, `gene-lib` also comes with some
-utility methods to help you with your chromosome methods. `::getCrossoverRange`,
-for example, can help with a two-point crossover:
+utility methods to help you with your chromosome methods. For example, to
+perform two-point crossovers, try something like this:
 
 ```js
 const lodash = require('lodash');
@@ -623,27 +624,12 @@ class MyChromosome extends Chromosome {
 	// ...
 
 	crossover(other) {
-		// Assume 'genes' is an array property on each chromosome, containing
-		// its genetic data, and all chromosomes have the same number of genes:
-		let [ start, end ] = geneLib.getCrossoverRange(this.genes.length);
+		// Assuming 'genes' is an array property on each chromosome, containing
+		// its genetic data.
+		let children = geneLib.twoPointCrossover(this.genes, other.genes);
 
-		// Create two new instances. Assume they each have an empty genes array.
-		let children = _.times(2, () => new MyChromosome());
-
-		// Iterate through parents, copying genes into one child or another
-		// based on the crossover range.
-		for (let i = 0; i < this.genes.length; i += 1) {
-			if (_.inRange(i, start, end)) {
-				children[1].genes[i] = this.genes[i];
-				children[0].genes[i] = other.genes[i];
-			} else {
-				children[0].genes[i] = this.genes[i];
-				children[1].genes[i] = other.genes[i];
-			}
-		}
-
-		// And we're done.
-		return children;
+		// Wrap children in new MyChromosome instances.
+		return children.map((child) => new MyChromosome(child));
 	}
 }
 
@@ -652,11 +638,13 @@ module.exports = MyChromosome;
 
 Utilities include:
 
-- `::getCrossoverPoint` for single point crossovers.
-- `::getCrossoverRange` demonstrated above.
-- `::getCrossoverIndices` for uniform crossover with a ratio of 0.5.
+- `::singlePointCrossover` performs a single-point crossover.
+- `::twoPointCrossover` demonstrated above.
+- `::uniformCrossover` performs a uniform crossover with a ratio of 0.5.
 - `::pmx` Performs a [partially matched crossover](http://www.wardsystems.com/manuals/genehunter/crossover_of_enumerated_chromosomes.htm)
-  between two arrays.
+- `::getRandomIndex` get an index for a one-point crossover.
+- `::getRandomRange` gets indices for a two-point or partially-matched crossover.
+- `::getRandomIndices` gets indices for a uniform crossover.
 
 Check out the api docs for more information.
 
