@@ -640,11 +640,11 @@ Utilities include:
 
 - `::singlePointCrossover` performs a single-point crossover.
 - `::twoPointCrossover` demonstrated above.
-- `::uniformCrossover` performs a uniform crossover with a ratio of 0.5.
+- `::uniformCrossover` performs a uniform crossover.
 - `::pmx` Performs a [partially matched crossover](http://www.wardsystems.com/manuals/genehunter/crossover_of_enumerated_chromosomes.htm)
-- `::getRandomIndex` get an index for a one-point crossover.
-- `::getRandomRange` gets indices for a two-point or partially-matched crossover.
-- `::getRandomIndices` gets indices for a uniform crossover.
+- `::getRandomIndex` get a random index, such as the one used in a one-point crossover.
+- `::getRandomRange` gets a start and end index, such as those used in a two-point or partially-matched crossover.
+- `::getRandomIndices` gets a random set of indices, such as those used in a uniform crossover.
 
 Check out the api docs for more information.
 
