@@ -101,21 +101,6 @@ describe('utils', function() {
 		});
 	});
 
-	describe('::pickRandomIndices', function() {
-		beforeEach(function() {
-			sandbox.stub(_, 'sampleSize').returns([ 1, 4 ]);
-		});
-
-		it('returns random set of indices of ratio of original length', function() {
-			let result = utils.pickRandomIndices(7, 0.3);
-
-			expect(_.sampleSize).to.be.calledOnce;
-			expect(_.sampleSize).to.be.calledOn(_);
-			expect(_.sampleSize).to.be.calledWith([ 0, 1, 2, 3, 4, 5, 6 ], 2);
-			expect(result).to.deep.equal([ 1, 4 ]);
-		});
-	});
-
 	describe('::singlePointCrossover', function() {
 		beforeEach(function() {
 			sandbox.stub(utils, 'getRandomIndex').returns(3);
