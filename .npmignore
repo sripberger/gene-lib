@@ -1,2 +1,4 @@
 .eslintrc
+.eslintignore
+todo.md
 test/
