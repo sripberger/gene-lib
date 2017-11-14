@@ -1,4 +1,4 @@
-const { Chromosome, getCrossoverIndices } = require('../../lib');
+const { Chromosome, uniformCrossover } = require('../../lib');
 const _ = require('lodash');
 const alphabet = 'abcdefghijklmnopqrstuvwxyz !,';
 
@@ -52,22 +52,8 @@ class Phrase extends Chromosome {
 	}
 
 	crossover(other) {
-		let leftChars = [];
-		let rightChars = [];
-		let crossoverIndices = getCrossoverIndices(this.str.length);
-		for (let i = 0; i < this.str.length; i += 1) {
-			if (_.includes(crossoverIndices, i)) {
-				leftChars.push(this.str.charAt(i));
-				rightChars.push(other.str.charAt(i));
-			} else {
-				leftChars.push(other.str.charAt(i));
-				rightChars.push(this.str.charAt(i));
-			}
-		}
-		return [
-			new this.constructor(leftChars.join(''), this.target),
-			new this.constructor(rightChars.join(''), this.target)
-		];
+		return uniformCrossover(this.str, other.str)
+			.map((childStr) => new this.constructor(childStr, this.target));
 	}
 }
 
