@@ -47,8 +47,9 @@ describe('utils', function() {
 	});
 
 	describe('::getRandomIndices', function() {
-		it('returns a set of indices for a uniform crossover', function() {
-			let length = 5;
+		const length = 5;
+
+		beforeEach(function() {
 			sandbox.stub(boolChance, 'get')
 				.onCall(0).returns(false)
 				.onCall(1).returns(true)
@@ -56,6 +57,21 @@ describe('utils', function() {
 				.onCall(3).returns(false)
 				.onCall(4).returns(true);
 
+			sandbox.stub(_, 'sampleSize').returns([ 3, 5 ]);
+		});
+
+		it('returns a set of indices with the provided selection probability', function() {
+			let probability = 0.3;
+
+			let result = utils.getRandomIndices(length, probability);
+
+			expect(boolChance.get).to.have.callCount(length);
+			expect(boolChance.get).to.always.be.calledOn(boolChance);
+			expect(boolChance.get).to.always.be.calledWith(probability);
+			expect(result).to.deep.equal([ 1, 4 ]);
+		});
+
+		it('defaults to selection probability of 0.5', function() {
 			let result = utils.getRandomIndices(length);
 
 			expect(boolChance.get).to.have.callCount(length);
@@ -63,18 +79,39 @@ describe('utils', function() {
 			expect(boolChance.get).to.always.be.calledWith(0.5);
 			expect(result).to.deep.equal([ 1, 4 ]);
 		});
+
+		it('suports picking a ratio of total', function() {
+			let result = utils.getRandomIndices(7, true, 0.3);
+
+			expect(boolChance.get).to.not.be.called;
+			expect(_.sampleSize).to.be.calledOnce;
+			expect(_.sampleSize).to.be.calledOn(_);
+			expect(_.sampleSize).to.be.calledWith([ 0, 1, 2, 3, 4, 5, 6 ], 2);
+			expect(result).to.deep.equal([ 3, 5 ]);
+		});
+
+		it('defaults to ratio of 0.5', function() {
+			let result = utils.getRandomIndices(7, true);
+
+			expect(boolChance.get).to.not.be.called;
+			expect(_.sampleSize).to.be.calledOnce;
+			expect(_.sampleSize).to.be.calledOn(_);
+			expect(_.sampleSize).to.be.calledWith([ 0, 1, 2, 3, 4, 5, 6 ], 3);
+			expect(result).to.deep.equal([ 3, 5 ]);
+		});
 	});
 
 	describe('::pickRandomIndices', function() {
-		it('returns random set of indices of half original length', function() {
-			let length = 5;
+		beforeEach(function() {
 			sandbox.stub(_, 'sampleSize').returns([ 1, 4 ]);
+		});
 
-			let result = utils.pickRandomIndices(length);
+		it('returns random set of indices of ratio of original length', function() {
+			let result = utils.pickRandomIndices(7, 0.3);
 
 			expect(_.sampleSize).to.be.calledOnce;
 			expect(_.sampleSize).to.be.calledOn(_);
-			expect(_.sampleSize).to.be.calledWith([ 0, 1, 2, 3, 4 ], 2);
+			expect(_.sampleSize).to.be.calledWith([ 0, 1, 2, 3, 4, 5, 6 ], 2);
 			expect(result).to.deep.equal([ 1, 4 ]);
 		});
 	});
@@ -146,34 +183,43 @@ describe('utils', function() {
 	});
 
 	describe('::uniformCrossover', function() {
+		let left, right;
+
 		beforeEach(function() {
+			left = [ 0, 1, 2, 3, 4 ];
+			right = [ 5, 6, 7, 8, 9 ];
 			sandbox.stub(utils, 'getRandomIndices').returns([ 1, 3, 4 ]);
 		});
 
-		it('performs a uniform crossover', function() {
-			let left = [ 0, 1, 2, 3, 4 ];
-			let right = [ 5, 6, 7, 8, 9 ];
-
-			let result = utils.uniformCrossover(left, right);
+		it('performs a uniform crossover with args passed to getRandomIndices', function() {
+			let result = utils.uniformCrossover(left, right, 'foo', 'bar');
 
 			expect(utils.getRandomIndices).to.be.calledOnce;
 			expect(utils.getRandomIndices).to.be.calledOn(utils);
-			expect(utils.getRandomIndices).to.be.calledWith(left.length);
+			expect(utils.getRandomIndices).to.be.calledWith(
+				left.length,
+				'foo',
+				'bar'
+			);
 			expect(result).to.deep.equal([
 				[ 0, 6, 2, 8, 9 ],
 				[ 5, 1, 7, 3, 4 ]
 			]);
 		});
 
-		it('supports string arguments', function() {
-			let left = 'abcde';
-			let right = 'fghij';
+		it('supports string left and right arguments', function() {
+			left = 'abcde';
+			right = 'fghij';
 
-			let result = utils.uniformCrossover(left, right);
+			let result = utils.uniformCrossover(left, right, 'foo', 'bar');
 
 			expect(utils.getRandomIndices).to.be.calledOnce;
 			expect(utils.getRandomIndices).to.be.calledOn(utils);
-			expect(utils.getRandomIndices).to.be.calledWith(left.length);
+			expect(utils.getRandomIndices).to.be.calledWith(
+				left.length,
+				'foo',
+				'bar'
+			);
 			expect(result).to.deep.equal([ 'agcij', 'fbhde' ]);
 		});
 	});
