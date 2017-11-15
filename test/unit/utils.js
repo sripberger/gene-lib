@@ -176,7 +176,7 @@ describe('utils', function() {
 			sandbox.stub(utils, 'getRandomIndices').returns([ 1, 3, 4 ]);
 		});
 
-		it('performs a uniform crossover with args passed to getRandomIndices', function() {
+		it('performs a uniform crossover with two args passed to getRandomIndices', function() {
 			let result = utils.uniformCrossover(left, right, 'foo', 'bar');
 
 			expect(utils.getRandomIndices).to.be.calledOnce;
