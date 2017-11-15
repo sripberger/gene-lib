@@ -70,7 +70,7 @@ describe('settingsUtils', function() {
 				selectorClass: {
 					settings: {
 						foo: 42,
-						selectorSettings: { bar: 'baz' },
+						defaults: { bar: 'baz' },
 						async: {
 							add: 1,
 							select: 2,
