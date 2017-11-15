@@ -44,26 +44,14 @@ describe('TournamentSelector', function() {
 	});
 
 	describe('#getTournament', function() {
-		let selector, sample;
-
-		beforeEach(function() {
+		it('returns a random subset of settings.tournamentSize', function() {
 			let foo = new TestIndividual('foo');
 			let bar = new TestIndividual('bar');
 			let baz = new TestIndividual('baz');
-
-			selector = new TournamentSelector();
-			sample = [ foo, bar ];
-
-			selector.add(foo, bar, baz );
-			sinon.stub(_, 'sampleSize').returns(sample);
-		});
-
-		afterEach(function() {
-			_.sampleSize.restore();
-		});
-
-		it('returns a random subset of settings.tournamentSize', function() {
-			selector.settings.tournamentSize = 1;
+			let qux = new TestIndividual('qux');
+			let selector = new TournamentSelector({ tournamentSize: 3 });
+			selector.add(foo, bar, baz, qux);
+			sandbox.stub(_, 'sampleSize').returns([ foo, bar, baz ]);
 
 			let result = selector.getTournament();
 
@@ -73,16 +61,7 @@ describe('TournamentSelector', function() {
 				selector.individuals,
 				selector.settings.tournamentSize
 			);
-			expect(result).to.equal(sample);
-		});
-
-		it('defaults to tournament size of 2', function() {
-			let result = selector.getTournament();
-
-			expect(_.sampleSize).to.be.calledOnce;
-			expect(_.sampleSize).to.be.calledOn(_);
-			expect(_.sampleSize).to.be.calledWith(selector.individuals, 2);
-			expect(result).to.equal(sample);
+			expect(result).to.deep.equal([ foo, bar, baz ]);
 		});
 	});
 
@@ -171,15 +150,7 @@ describe('TournamentSelector', function() {
 			expect(Math.random).to.be.calledOn(Math);
 		});
 
-		it('uses default baseWeight of 1', function() {
-			selector.selectWeighted();
-
-			expect(TournamentSelector.getWeights).to.be.calledOnce;
-			expect(TournamentSelector.getWeights).to.be.calledOn(TournamentSelector);
-			expect(TournamentSelector.getWeights).to.be.calledWith(1, 3);
-		});
-
-		it('returns individual based on weights and random', function() {
+		it('returns individual based on weights and random float', function() {
 			Math.random
 				.onCall(0).returns(0.49)
 				.onCall(1).returns(0.5)
@@ -212,17 +183,7 @@ describe('TournamentSelector', function() {
 			sinon.stub(selector, 'selectWeighted').returns(bar);
 		});
 
-		context('baseWeight not set', function() {
-			it('returns result of #selectDeterministic', function() {
-				let result = selector.select();
-
-				expect(selector.selectDeterministic).to.be.calledOnce;
-				expect(selector.selectDeterministic).to.be.calledOn(selector);
-				expect(result).to.equal(foo);
-			});
-		});
-
-		context('baseWeight is 1', function() {
+		context('settings.baseWeight is 1', function() {
 			it('returns result of #selectDeterministic', function() {
 				selector.settings.baseWeight = 1;
 
@@ -234,7 +195,7 @@ describe('TournamentSelector', function() {
 			});
 		});
 
-		context('baseWeight is not 1', function() {
+		context('settings.baseWeight is not 1', function() {
 			it('returns result of #selectWeighted', function() {
 				selector.settings.baseWeight = 0.75;
 

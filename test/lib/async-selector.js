@@ -1,13 +1,14 @@
+const _ = require('lodash');
 const { TournamentSelector } = require('../../lib');
 
 class AsyncSelector extends TournamentSelector {
 	static get settings() {
-		return {
+		return _.assign({}, super.settings, {
 			async: {
 				add: true,
 				select: true
 			}
-		};
+		});
 	}
 
 	add(individual) {
