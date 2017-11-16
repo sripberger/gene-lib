@@ -2,6 +2,7 @@ const BreedingScheme = require('../../lib/breeding-scheme');
 const sinon = require('sinon');
 const _ = require('lodash');
 const pasync = require('pasync');
+const XError = require('xerror');
 const Population = require('../../lib/population');
 const TestIndividual = require('../lib/test-individual');
 
@@ -30,15 +31,59 @@ describe('BreedingScheme', function() {
 		expect(scheme.settings).to.deep.equal({});
 	});
 
+	describe('#checkChildCount', function() {
+		let scheme, individuals;
+		const errMessage = 'crossover must produce exactly 3 children. Use ' +
+			'childCount setting to adjust this, if needed.';
+
+		beforeEach(function() {
+			scheme = new BreedingScheme([], [], { childCount: 3 });
+			individuals = _.times(4, (i) => new TestIndividual(i));
+		});
+
+		it('returns children if length is correct', function() {
+			let children = individuals.slice(0, 3);
+
+			expect(scheme.checkChildCount(children)).to.equal(children);
+		});
+
+		it('throws if length is too high', function() {
+			expect(() => scheme.checkChildCount(individuals))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(errMessage);
+					expect(err.data).to.deep.equal({
+						children: individuals,
+						expectedCount: 3
+					});
+					return true;
+				});
+		});
+
+		it('throws if length is too low', function() {
+			let children = individuals.slice(0, 2);
+
+			expect(() => scheme.checkChildCount(children))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(errMessage);
+					expect(err.data).to.deep.equal({
+						children,
+						expectedCount: 3
+					});
+					return true;
+				});
+		});
+	});
+
 	describe('#performCrossovers', function() {
 		let scheme, population;
 
 		beforeEach(function() {
 			scheme = new BreedingScheme();
 			population = new Population();
-
-			sinon.stub(scheme, 'performCrossoversSync').returns(population);
-			sinon.stub(scheme, 'performCrossoversAsync').resolves(population);
+			sandbox.stub(scheme, 'performCrossoversSync').returns(population);
+			sandbox.stub(scheme, 'performCrossoversAsync').resolves(population);
 		});
 
 		context('settings.async is not set', function() {
@@ -88,14 +133,15 @@ describe('BreedingScheme', function() {
 			let scheme = new BreedingScheme(crossovers, copies, {
 				crossoverRate: 0.3
 			});
-			sinon.stub(individuals[0], 'crossoverSync').returns([
+			sandbox.stub(individuals[0], 'crossoverSync').returns([
 				individuals[8],
 				individuals[9]
 			]);
-			sinon.stub(individuals[3], 'crossoverSync').returns([
+			sandbox.stub(individuals[3], 'crossoverSync').returns([
 				individuals[10],
 				individuals[11]
 			]);
+			sandbox.stub(scheme, 'checkChildCount').returnsArg(0);
 
 			let result = scheme.performCrossoversSync();
 
@@ -111,6 +157,16 @@ describe('BreedingScheme', function() {
 				[ individuals[4], individuals[5] ],
 				scheme.settings.crossoverRate
 			);
+			expect(scheme.checkChildCount).to.be.calledTwice;
+			expect(scheme.checkChildCount).to.always.be.calledOn(scheme);
+			expect(scheme.checkChildCount).to.be.calledWith([
+				individuals[8],
+				individuals[9]
+			]);
+			expect(scheme.checkChildCount).to.be.calledWith([
+				individuals[10],
+				individuals[11]
+			]);
 			expect(result).to.be.an.instanceof(Population);
 			expect(result.individuals).to.deep.equal([
 				individuals[6],
@@ -184,8 +240,9 @@ describe('BreedingScheme', function() {
 				let baz = new TestIndividual('baz');
 				let fooBar = new TestIndividual('foo-bar');
 				let barFoo = new TestIndividual('bar-foo');
-				let crossoverResult = [ fooBar, barFoo ];
-				sinon.stub(foo, 'crossoverAsync').resolves(crossoverResult);
+				let children = [ fooBar, barFoo ];
+				sandbox.stub(foo, 'crossoverAsync').resolves(children);
+				sandbox.stub(scheme, 'checkChildCount').returnsArg(0);
 
 				return iteratee([ foo, bar, baz ])
 					.then((result) => {
@@ -195,7 +252,12 @@ describe('BreedingScheme', function() {
 							[ bar, baz ],
 							scheme.settings.crossoverRate
 						);
-						expect(result).to.equal(crossoverResult);
+						expect(scheme.checkChildCount).to.be.calledOnce;
+						expect(scheme.checkChildCount).to.be.calledOn(scheme);
+						expect(scheme.checkChildCount).to.be.calledWith(
+							children
+						);
+						expect(result).to.equal(children);
 					});
 			});
 		});
