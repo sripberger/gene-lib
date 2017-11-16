@@ -1,8 +1,8 @@
-const { Chromosome, uniformCrossover } = require('../../lib');
+const geneLib = require('../../lib');
 const _ = require('lodash');
 const alphabet = 'abcdefghijklmnopqrstuvwxyz !,';
 
-class Phrase extends Chromosome {
+class Phrase extends geneLib.Chromosome {
 	constructor(str, target) {
 		super();
 		this.str = str;
@@ -27,30 +27,30 @@ class Phrase extends Chromosome {
 	getFitness() {
 		let diff = 0;
 		for (let i = 0; i < this.str.length; i += 1) {
-			let charIndex = alphabet.indexOf(this.str.charAt(i));
-			let targetIndex = alphabet.indexOf(this.target.charAt(i));
+			let charIndex = alphabet.indexOf(this.str[i]);
+			let targetIndex = alphabet.indexOf(this.target[i]);
 			diff += Math.abs(charIndex - targetIndex);
 		}
 		return 1 / diff;
 	}
 
 	crossover(other) {
-		return uniformCrossover(this.str, other.str)
+		return geneLib.uniformCrossover(this.str, other.str)
 			.map((childStr) => new this.constructor(childStr, this.target));
 	}
 
 	mutate(rate) {
+		let mutationIndices = geneLib.getRandomIndices(this.str.length, rate);
 		let resultChars = [];
 		for (let i = 0; i < this.str.length; i += 1) {
-			let char = this.str.charAt(i);
-			if (Math.random() > rate) {
-				resultChars.push(char);
-			} else {
+			let char = this.str[i];
+			if (_.includes(mutationIndices, i)) {
 				let charIndex = alphabet.indexOf(char);
 				let mutation = (Math.random() < 0.5) ? 1 : -1;
-				let resultIndex = alphabet.length + charIndex + mutation;
-				let resultChar = alphabet.charAt(resultIndex % alphabet.length);
-				resultChars.push(resultChar);
+				let newIndex = alphabet.length + charIndex + mutation;
+				resultChars.push(alphabet[newIndex % alphabet.length]);
+			} else {
+				resultChars.push(char);
 			}
 		}
 		return new this.constructor(resultChars.join(''), this.target);
