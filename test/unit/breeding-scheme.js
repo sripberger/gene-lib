@@ -50,7 +50,7 @@ describe('BreedingScheme', function() {
 		it('throws if length is too high', function() {
 			expect(() => scheme.checkChildCount(individuals))
 				.to.throw(XError).that.satisfies((err) => {
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(errMessage);
 					expect(err.data).to.deep.equal({
 						children: individuals,
@@ -65,7 +65,7 @@ describe('BreedingScheme', function() {
 
 			expect(() => scheme.checkChildCount(children))
 				.to.throw(XError).that.satisfies((err) => {
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(errMessage);
 					expect(err.data).to.deep.equal({
 						children,

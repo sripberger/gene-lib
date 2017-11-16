@@ -34,7 +34,7 @@ describe('ResultSchema', function() {
 
 			expect(() => schema.validateSync('foo'))
 				.to.throw(XError).that.satisfies((err) => {
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(
 						`${operation} must return ${description}.`
 					);
@@ -49,7 +49,7 @@ describe('ResultSchema', function() {
 
 			expect(() => schema.validateSync(promise))
 				.to.throw(XError).that.satisfies((err) => {
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(
 						`${operation} returned a promise, but ` +
 						`async.${operation} was not set.`
@@ -64,7 +64,7 @@ describe('ResultSchema', function() {
 
 			expect(() => schema.validateSync(undefined))
 				.to.throw(XError).that.satisfies((err) => {
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(
 						`${operation} must return ${description}.`
 					);
@@ -83,7 +83,7 @@ describe('ResultSchema', function() {
 					throw new Error('Promise should have rejected.');
 				}, (err) => {
 					expect(err).to.be.an.instanceof(XError);
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(
 						`${operation} must return a promise if ` +
 						`async.${operation} is set.`
@@ -115,7 +115,7 @@ describe('ResultSchema', function() {
 					throw new Error('Promise should have rejected.');
 				}, (err) => {
 					expect(err).to.be.an.instanceof(XError);
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(
 						`${operation} must resolve with ${description}.`
 					);
@@ -129,7 +129,7 @@ describe('ResultSchema', function() {
 					throw new Error('Promise should have rejected.');
 				}, (err) => {
 					expect(err).to.be.an.instanceof(XError);
-					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.code).to.equal(XError.INVALID_RESULT);
 					expect(err.message).to.equal(
 						`${operation} must return a promise if ` +
 						`async.${operation} is set.`
