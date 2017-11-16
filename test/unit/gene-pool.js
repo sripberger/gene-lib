@@ -5,9 +5,12 @@ const boolChance = require('bool-chance');
 const pasync = require('pasync');
 const BreedingScheme = require('../../lib/breeding-scheme');
 const Population = require('../../lib/population');
+const resultSchemas = require('../../lib/result-schemas/selector');
 const Selector = require('../../lib/selector');
 const TestIndividual = require('../lib/test-individual');
 const TestSelector = require('../lib/test-selector');
+const addSchema = resultSchemas.add;
+const selectSchema = resultSchemas.select;
 
 describe('GenePool', function() {
 	it('stores provided selector, litter counts, and settings object', function() {
@@ -181,7 +184,8 @@ describe('GenePool', function() {
 			let selector = new Selector();
 			let pool = new GenePool(selector);
 			sandbox.stub(GenePool, 'create').returns(pool);
-			sinon.stub(selector, 'add');
+			sandbox.stub(selector, 'add').callsFake((i) => ({ add: i }));
+			sandbox.stub(addSchema, 'validateSync');
 
 			let result = GenePool.fromPopulationSync(population);
 
@@ -192,6 +196,10 @@ describe('GenePool', function() {
 			expect(selector.add).to.always.be.calledOn(selector);
 			expect(selector.add).to.be.calledWith(foo);
 			expect(selector.add).to.be.calledWith(bar);
+			expect(addSchema.validateSync).to.be.calledTwice;
+			expect(addSchema.validateSync).to.always.be.calledOn(addSchema);
+			expect(addSchema.validateSync).to.be.calledWith({ add: foo });
+			expect(addSchema.validateSync).to.be.calledWith({ add: bar });
 			expect(result).to.equal(pool);
 		});
 	});
@@ -250,16 +258,25 @@ describe('GenePool', function() {
 
 			it('resolves with result of selector#add', function() {
 				let [ foo ] = population.individuals;
-				sinon.stub(selector, 'add').resolves();
+				let addPromise = Promise.resolve();
+				sandbox.stub(selector, 'add').returns(addPromise);
+				sandbox.stub(addSchema, 'validateAsync').resolves();
 
 				return iteratee(foo)
 					.then(() => {
 						expect(selector.add).to.be.calledOnce;
 						expect(selector.add).to.be.calledOn(selector);
 						expect(selector.add).to.be.calledWith(foo);
+						expect(addSchema.validateAsync).to.be.calledOnce;
+						expect(addSchema.validateAsync).to.be.calledOn(
+							addSchema
+						);
+						expect(addSchema.validateAsync).to.be.calledWith(
+							sinon.match.same(addPromise)
+						);
 					}).then(() => {
 						// Test rejection to ensure we aren't resolving early.
-						selector.add.rejects();
+						addSchema.validateAsync.rejects();
 						return iteratee(foo)
 							.then(() => {
 								throw new Error('Promise should have rejected.');
@@ -292,9 +309,8 @@ describe('GenePool', function() {
 		beforeEach(function() {
 			pool = new GenePool();
 			scheme = new BreedingScheme();
-
-			sinon.stub(pool, 'performSelectionsSync').returns(scheme);
-			sinon.stub(pool, 'performSelectionsAsync').resolves(scheme);
+			sandbox.stub(pool, 'performSelectionsSync').returns(scheme);
+			sandbox.stub(pool, 'performSelectionsAsync').resolves(scheme);
 		});
 
 		context('settings.async is not set', function() {
@@ -334,15 +350,15 @@ describe('GenePool', function() {
 	});
 
 	describe('#performSelectionsSync', function() {
-		it('returns breeding scheme from selection results', function() {
+		it('returns breeding scheme from validated selection results', function() {
 			let selector = new Selector();
 			let pool = new GenePool(selector, 2, 1, {
 				parentCount: 2,
 				childCount: 3
 			});
 			let individuals = _.times(7, (i) => new TestIndividual(i));
-			sinon.stub(pool, 'getSelectionCount').returns(7);
-			sinon.stub(selector, 'select')
+			sandbox.stub(pool, 'getSelectionCount').returns(7);
+			sandbox.stub(selector, 'select')
 				.onCall(0).returns(individuals[0])
 				.onCall(1).returns(individuals[1])
 				.onCall(2).returns(individuals[2])
@@ -350,6 +366,7 @@ describe('GenePool', function() {
 				.onCall(4).returns(individuals[4])
 				.onCall(5).returns(individuals[5])
 				.onCall(6).returns(individuals[6]);
+			sandbox.stub(selectSchema, 'validateSync').returnsArg(0);
 
 			let result = pool.performSelectionsSync();
 
@@ -357,6 +374,13 @@ describe('GenePool', function() {
 			expect(pool.getSelectionCount).to.be.calledOn(pool);
 			expect(selector.select).to.have.callCount(7);
 			expect(selector.select).to.always.be.calledOn(selector);
+			expect(selectSchema.validateSync).to.have.callCount(7);
+			expect(selectSchema.validateSync).to.always.be.calledOn(
+				selectSchema
+			);
+			for (let individual of individuals) {
+				expect(selectSchema.validateSync).to.be.calledWith(individual);
+			}
 			expect(result).to.be.an.instanceof(BreedingScheme);
 			expect(result.crossovers).to.deep.equal([
 				[ individuals[0], individuals[1] ],
@@ -423,14 +447,25 @@ describe('GenePool', function() {
 					});
 			});
 
-			it('resolves with result of selector#select', function() {
+			it('resolves with validated result of selector#select', function() {
 				let [ individual ] = individuals;
-				sinon.stub(selector, 'select').resolves(individual);
+				let selectPromise = Promise.resolve();
+				sandbox.stub(selector, 'select').returns(selectPromise);
+				sandbox.stub(selectSchema, 'validateAsync').resolves(
+					individual
+				);
 
 				return iteratee()
 					.then((result) => {
 						expect(selector.select).to.be.calledOnce;
 						expect(selector.select).to.be.calledOn(selector);
+						expect(selectSchema.validateAsync).to.be.calledOnce;
+						expect(selectSchema.validateAsync).to.be.calledOn(
+							selectSchema
+						);
+						expect(selectSchema.validateAsync).to.be.calledWith(
+							sinon.match.same(selectPromise)
+						);
 						expect(result).to.equal(individual);
 					});
 			});
