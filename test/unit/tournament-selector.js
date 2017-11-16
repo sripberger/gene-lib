@@ -1,7 +1,8 @@
 const TournamentSelector = require('../../lib/tournament-selector');
 const ArraySelector = require('../../lib/array-selector');
-const sinon = require('sinon');
 const _ = require('lodash');
+const sinon = require('sinon');
+const XError = require('xerror');
 const TestIndividual = require('../lib/test-individual');
 
 describe('TournamentSelector', function() {
@@ -18,6 +19,87 @@ describe('TournamentSelector', function() {
 		let selector = new TournamentSelector(settings);
 
 		expect(selector.settings).to.equal(settings);
+	});
+
+	describe('::validateSettings', function() {
+		let settings;
+
+		function testInvalidSize(size) {
+			settings.tournamentSize = size;
+
+			expect(() => TournamentSelector.validateSettings(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'tournamentSize must be an integer greater than 1.'
+					);
+					expect(err.data).to.deep.equal({
+						tournamentSize: settings.tournamentSize
+					});
+					return true;
+				});
+		}
+
+		function testInvalidWeight(weight) {
+			settings.baseWeight = weight;
+
+			expect(() => TournamentSelector.validateSettings(settings))
+				.to.throw(XError).that.satisfies((err) => {
+					expect(err.code).to.equal(XError.INVALID_ARGUMENT);
+					expect(err.message).to.equal(
+						'baseWeight must be a number in (0.5, 1].'
+					);
+					expect(err.data).to.deep.equal({
+						baseWeight: settings.baseWeight
+					});
+					return true;
+				});
+		}
+
+		beforeEach(function() {
+			settings = {
+				tournamentSize: 3,
+				baseWeight: 0.51
+			};
+		});
+
+		it('does nothing for valid settings', function() {
+			TournamentSelector.validateSettings(settings);
+		});
+
+		it('throws if tournamentSize is not an integer', function() {
+			testInvalidSize(2.5);
+		});
+
+		it('throws if tournamentSize is one', function() {
+			testInvalidSize(1);
+		});
+
+		it('throws if tournamentSize is less than one', function() {
+			testInvalidSize(0);
+		});
+
+		it('throws if baseWeight is not a number', function() {
+			testInvalidWeight('foo');
+		});
+
+		it('throws if baseWeight is equal to 0.5', function() {
+			testInvalidWeight(0.5);
+		});
+
+		it('throws if baseWeight is less than to 0.5', function() {
+			testInvalidWeight(0.49);
+		});
+
+		it('throws if baseWeight is greater than 1', function() {
+			testInvalidWeight(1.01);
+		});
+
+		it('allows baseWeight of 1', function() {
+			settings.baseWeight = 1;
+
+			TournamentSelector.validateSettings(settings);
+		});
 	});
 
 	describe('::getWeights', function() {

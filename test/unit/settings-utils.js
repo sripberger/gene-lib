@@ -564,6 +564,21 @@ describe('settingsUtils', function() {
 					return true;
 				});
 		});
+
+		it('validates selector settings with selectorClass::validateSettings', function() {
+			let { selectorClass } = settings;
+			selectorClass.validateSettings = sandbox.stub();
+			settings.selectorSettings = { foo: 'bar' };
+
+			let result = settingsUtils.validate(settings);
+
+			expect(selectorClass.validateSettings).to.be.calledOnce;
+			expect(selectorClass.validateSettings).to.be.calledOn(selectorClass);
+			expect(selectorClass.validateSettings).to.be.calledWith(
+				settings.selectorSettings
+			);
+			expect(result).to.equal(settings);
+		});
 	});
 
 	describe('::normalize', function() {
