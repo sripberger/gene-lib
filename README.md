@@ -387,6 +387,12 @@ class MySelector extends Selector {
 		// Do any additional initialization here.
 	}
 
+	static validateSettings(settings) {
+		// This method is optional, but can be implemented to ensure that the
+		// settings provided to instances make sense. It should throw an
+		// appropriate error if they don't.
+	}
+
 	add(individual) {
 		// Store individual in the selector. The individual will be an object
 		// with two properties: 'fitness' and 'chromosome'.
