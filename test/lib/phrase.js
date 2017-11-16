@@ -34,6 +34,11 @@ class Phrase extends Chromosome {
 		return 1 / diff;
 	}
 
+	crossover(other) {
+		return uniformCrossover(this.str, other.str)
+			.map((childStr) => new this.constructor(childStr, this.target));
+	}
+
 	mutate(rate) {
 		let resultChars = [];
 		for (let i = 0; i < this.str.length; i += 1) {
@@ -49,11 +54,6 @@ class Phrase extends Chromosome {
 			}
 		}
 		return new this.constructor(resultChars.join(''), this.target);
-	}
-
-	crossover(other) {
-		return uniformCrossover(this.str, other.str)
-			.map((childStr) => new this.constructor(childStr, this.target));
 	}
 }
 

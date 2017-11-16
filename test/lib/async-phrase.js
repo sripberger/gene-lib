@@ -7,8 +7,8 @@ class AsyncPhrase extends Phrase {
 			async: {
 				create: true,
 				getFitness: true,
-				mutate: true,
-				crossover: true
+				crossover: true,
+				mutate: true
 			}
 		});
 	}
@@ -21,12 +21,12 @@ class AsyncPhrase extends Phrase {
 		return Promise.resolve(super.getFitness());
 	}
 
-	mutate(rate) {
-		return Promise.resolve(super.mutate(rate));
-	}
-
 	crossover(other, rate) {
 		return Promise.resolve(super.crossover(other, rate));
+	}
+
+	mutate(rate) {
+		return Promise.resolve(super.mutate(rate));
 	}
 }
 
