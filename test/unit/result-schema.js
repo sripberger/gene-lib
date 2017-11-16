@@ -4,33 +4,33 @@ const XError = require('xerror');
 describe('ResultSchema', function() {
 	const operation = 'operation';
 	const description = 'description';
-	let validate, schema;
+	let isValid, schema;
 
 	beforeEach(function() {
-		validate = sandbox.stub().returns(true);
-		schema = new ResultSchema(operation, { description, validate });
+		isValid = sandbox.stub().returns(true);
+		schema = new ResultSchema(operation, { description, isValid });
 	});
 
 	it('initializes instance from operation name and object', function() {
 		expect(schema.operation).to.equal(operation);
 		expect(schema.description).to.equal(description);
-		expect(schema.validate).to.equal(validate);
+		expect(schema.isValid).to.equal(isValid);
 	});
 
 	describe('#validateSync', function() {
-		it('invokes validate with provided value', function() {
+		it('invokes isValid with provided value', function() {
 			schema.validateSync('foo');
 
-			expect(validate).to.be.calledOnce;
-			expect(validate).to.be.calledWith('foo');
+			expect(isValid).to.be.calledOnce;
+			expect(isValid).to.be.calledWith('foo');
 		});
 
-		it('returns provided value if validate returns true', function() {
+		it('returns provided value if isValid returns true', function() {
 			expect(schema.validateSync('foo')).to.equal('foo');
 		});
 
-		it('throws if validate returns false', function() {
-			validate.returns(false);
+		it('throws if isValid returns false', function() {
+			isValid.returns(false);
 
 			expect(() => schema.validateSync('foo'))
 				.to.throw(XError).that.satisfies((err) => {
@@ -45,7 +45,7 @@ describe('ResultSchema', function() {
 
 		it('includes async help in error message if value is a promise', function() {
 			let promise = Promise.resolve('foo');
-			validate.returns(false);
+			isValid.returns(false);
 
 			expect(() => schema.validateSync(promise))
 				.to.throw(XError).that.satisfies((err) => {
@@ -60,7 +60,7 @@ describe('ResultSchema', function() {
 		});
 
 		it('properly handles undefined values', function() {
-			validate.returns(false);
+			isValid.returns(false);
 
 			expect(() => schema.validateSync(undefined))
 				.to.throw(XError).that.satisfies((err) => {
@@ -92,23 +92,23 @@ describe('ResultSchema', function() {
 				});
 		});
 
-		it('invokes validate with promise result', function() {
+		it('invokes isValid with promise result', function() {
 			return schema.validateAsync(Promise.resolve('foo'))
 				.then(() => {
-					expect(validate).to.be.calledOnce;
-					expect(validate).to.be.calledWith('foo');
+					expect(isValid).to.be.calledOnce;
+					expect(isValid).to.be.calledWith('foo');
 				});
 		});
 
-		it('resolves with result if validate returns true', function() {
+		it('resolves with result if isValid returns true', function() {
 			return schema.validateAsync(Promise.resolve('foo'))
 				.then((result) => {
 					expect(result).to.equal('foo');
 				});
 		});
 
-		it('rejects if validate returns false', function() {
-			validate.returns(false);
+		it('rejects if isValid returns false', function() {
+			isValid.returns(false);
 
 			return schema.validateAsync(Promise.resolve('foo'))
 				.then(() => {
