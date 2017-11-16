@@ -12,63 +12,63 @@ describe('Individual', function() {
 	});
 
 	describe('::createSync', function() {
-		let chromosome, chromosomeFactory;
+		let chromosome, createChromosome;
 
 		beforeEach(function() {
 			chromosome = new TestChromosome('chromosome');
-			chromosomeFactory = sinon.stub();
-			chromosomeFactory.returns(chromosome);
+			createChromosome = sinon.stub();
+			createChromosome.returns(chromosome);
 		});
 
-		it('returns chromosome from factory as new individual', function() {
+		it('returns chromosome from createChromosome as new individual', function() {
 			let result = Individual.createSync(
-				chromosomeFactory,
+				createChromosome,
 				[ 'foo', 'bar' ]
 			);
 
-			expect(chromosomeFactory).to.be.calledOnce;
-			expect(chromosomeFactory).to.be.calledWith('foo', 'bar');
+			expect(createChromosome).to.be.calledOnce;
+			expect(createChromosome).to.be.calledWith('foo', 'bar');
 			expect(result).to.be.an.instanceof(Individual);
 			expect(result.chromosome).to.equal(chromosome);
 		});
 
-		it('defaults to empty factoryArgs array', function() {
-			let result = Individual.createSync(chromosomeFactory);
+		it('defaults to empty createArgs array', function() {
+			let result = Individual.createSync(createChromosome);
 
-			expect(chromosomeFactory).to.be.calledOnce;
-			expect(chromosomeFactory).to.be.calledWithExactly();
+			expect(createChromosome).to.be.calledOnce;
+			expect(createChromosome).to.be.calledWithExactly();
 			expect(result).to.be.an.instanceof(Individual);
 			expect(result.chromosome).to.equal(chromosome);
 		});
 	});
 
 	describe('::createAsync', function() {
-		let chromosome, chromosomeFactory;
+		let chromosome, createChromosome;
 
 		beforeEach(function() {
 			chromosome = new TestChromosome('chromosome');
-			chromosomeFactory = sinon.stub();
-			chromosomeFactory.resolves(chromosome);
+			createChromosome = sinon.stub();
+			createChromosome.resolves(chromosome);
 		});
 
-		it('resolves with chromosome from async factory as new individual', function() {
+		it('resolves with chromosome from createChromosome as new individual', function() {
 			return Individual.createAsync(
-				chromosomeFactory,
+				createChromosome,
 				[ 'foo', 'bar' ]
 			)
 				.then((result) => {
-					expect(chromosomeFactory).to.be.calledOnce;
-					expect(chromosomeFactory).to.be.calledWith('foo', 'bar');
+					expect(createChromosome).to.be.calledOnce;
+					expect(createChromosome).to.be.calledWith('foo', 'bar');
 					expect(result).to.be.an.instanceof(Individual);
 					expect(result.chromosome).to.equal(chromosome);
 				});
 		});
 
-		it('defaults to empty factoryArgs array', function() {
-			return Individual.createAsync(chromosomeFactory)
+		it('defaults to empty createArgs array', function() {
+			return Individual.createAsync(createChromosome)
 				.then((result) => {
-					expect(chromosomeFactory).to.be.calledOnce;
-					expect(chromosomeFactory).to.be.calledWithExactly();
+					expect(createChromosome).to.be.calledOnce;
+					expect(createChromosome).to.be.calledWithExactly();
 					expect(result).to.be.an.instanceof(Individual);
 					expect(result.chromosome).to.equal(chromosome);
 				});
