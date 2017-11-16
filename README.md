@@ -113,7 +113,7 @@ for a great explanation of why this is.
       Defaults to 2, for binary tournament.
     - **baseWeight**: Probability of selecting the top individual in the
       tournament. Defaults to 1, for a deterministic tournament.
-- **generationSize***: Specifies the number of individuals in each generation.
+- **generationSize**: Specifies the number of individuals in each generation.
   This setting must be provided, and it must be a positive integer that is also
   a multiple of the childCount.
 - **generationLimit**: Specifies the maximum number of generations to run.
@@ -190,7 +190,7 @@ class MySelector extends Selector  {
 }
 
 MySelector.settings = {
-	selectorSettings: { foo: 'bar' }
+	defaults: { foo: 'bar' }
 };
 
 module.exports = MySelector;
