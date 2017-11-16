@@ -104,8 +104,8 @@ describe('GenePool', function() {
 				crossoverCount: 4,
 				copyCount: 16
 			});
-			let result = GenePool.create(settings);
 
+			let result = GenePool.create(settings);
 
 			expect(GenePool.getLitterCounts).to.be.calledOnce;
 			expect(GenePool.getLitterCounts).to.be.calledOn(GenePool);
@@ -340,7 +340,7 @@ describe('GenePool', function() {
 				parentCount: 2,
 				childCount: 3
 			});
-			let individuals = _.times(6, (i) => new TestIndividual(i));
+			let individuals = _.times(7, (i) => new TestIndividual(i));
 			sinon.stub(pool, 'getSelectionCount').returns(7);
 			sinon.stub(selector, 'select')
 				.onCall(0).returns(individuals[0])
