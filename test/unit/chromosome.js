@@ -9,6 +9,8 @@ describe('Chromosome', function() {
 
 			expect(Chromosome.isChromosome(obj)).to.be.false;
 			expect(Chromosome.isChromosome(otherObj)).to.be.true;
+			expect(Chromosome.isChromosome(null)).to.be.false;
+			expect(Chromosome.isChromosome(undefined)).to.be.false;
 		});
 	});
 
