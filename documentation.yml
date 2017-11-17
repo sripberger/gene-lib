@@ -1,0 +1,22 @@
+# This file defines sorting of memeber documentation. Any member not listed will
+# be appended to the end, in source order.
+
+# Child items are not actually nested here. They are merely listed after each
+# group name. This is a workaround, as actual nesting of TOC items is currently
+# broken for html output in documentation.js.
+
+toc:
+    - name: Core Methods
+    - run
+    - runSync
+    - registerSelector
+
+    - name: Classes
+    - Chromosome
+    - CachingChromosome
+    - Selector
+    - ArraySelector
+    - TournamentSelector
+    - RouletteSelector
+
+    - name: Utility Methods

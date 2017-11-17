@@ -18,7 +18,7 @@
     "unit": "mocha ./test/setup.js ./test/unit --recursive -R spec || exit 0",
     "integration": "mocha ./test/setup.js ./test/integration --recursive -R spec || exit 0",
     "test": "npm run unit; npm run integration",
-    "docs": "documentation build -f html -o docs",
+    "docs": "documentation build --config documentation.yml -f html -o docs",
     "postversion": "npm run docs && gh-pages -d docs"
   },
   "author": "Steve Ripberger",
