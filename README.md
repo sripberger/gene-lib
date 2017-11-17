@@ -1,7 +1,12 @@
 # gene-lib
 
 An object-oriented genetic algorithm framework with support for asynchronous
-operations at any stage of the algorithm.
+operations at any stage of the algorithm. It also unblocks execution between
+generations, allowing CPU-intensive genetic algorithms to be used as part of
+user-facing API's.
+
+Check out the [api docs](https://sripberger.github.io/gene-lib/) or use the
+following guide to get started.
 
 
 ## Creating a Chromosome Class
@@ -643,15 +648,13 @@ module.exports = MyChromosome;
 
 Utilities include:
 
-- `::getRandomIndex` get a random index, such as the one used in a one-point crossover.
-- `::getRandomRange` gets a start and end index, such as those used in a two-point or partially-matched crossover.
-- `::getRandomIndices` gets a random set of indices, such as those used in a uniform crossover.
-- `::singlePointCrossover` performs a single-point crossover.
-- `::twoPointCrossover` demonstrated above.
-- `::uniformCrossover` performs a uniform crossover.
-- `::pmx` Performs a [partially matched crossover](http://www.wardsystems.com/manuals/genehunter/crossover_of_enumerated_chromosomes.htm)
-
-Check out the api docs for more information.
+- [`::getRandomIndex`](https://sripberger.github.io/gene-lib/#getrandomindex)
+- [`::getRandomRange`](https://sripberger.github.io/gene-lib/#getrandomrange)
+- [`::getRandomIndices`](https://sripberger.github.io/gene-lib/#getrandomindices)
+- [`::singlePointCrossover`](https://sripberger.github.io/gene-lib/#singlepointcrossover)
+- [`::twoPointCrossover`](https://sripberger.github.io/gene-lib/#twopointcrossover)
+- [`::uniformCrossover`](https://sripberger.github.io/gene-lib/#uniformcrossover)
+- [`::pmx`](https://sripberger.github.io/gene-lib/#pmx)
 
 
 ## Phrase Solver Example
@@ -666,20 +669,22 @@ in the
 
 Currently on npm there are a lot of competing projects in this space without a
 clear winner. I created `gene-lib` mainly for my own enjoyment and because all
-of the existing projects had something about them I that didn't quite like.
+of the existing projects had something about them I that didn't quite like. For
+most, a major problem is blocking execution for the whole run unless you have a
+true async operation somewhere. This can sometimes be remedied with a
+`setImmediate` in the right place, but in my opinion it's better for the
+framework to handle it.
 
-- [darwin-js](https://www.npmjs.com/package/darwin-js) - Similar idea, but far,
-  simpler. Can be both a good thing and a bad thing. As of this writing, it only
-  supports asynchronous fitness scoring, and even that must occur in series.
+- [darwin-js](https://www.npmjs.com/package/darwin-js) - Similar idea, but far
+  simpler. As of this writing, it only supports async fitness calculation, and
+  even that must be in series.
 - [genetic](https://www.npmjs.com/package/genetic) - I think this is a bit more
   targeted towards browsers. Everything is callback-based, which avoids the
-  issue of creating lots of unnecessary promises, but that does make it a bit
-  less nice to use, depending on who you ask.
-- [genetic-js](https://www.npmjs.com/package/genetic-js) - Seems to be one of
-  the more popular ones. I'm not a big fan of the api or its documentation,
-  though much of that is just personal preference, I guess.
-- [geneticalgorithm](https://www.npmjs.com/package/geneticalgorithm) - Gives me
-  similar feelings to `genetic-js`.
+  issue of creating lots of unnecessary promises, but that can make it a bit
+  less nice to use.
+- [genetic-js](https://www.npmjs.com/package/genetic-js) - One of the better
+  alternatives, though it could use some more documentation, and it's API is not
+  my personal cup of tea.
 
 There are a lot more that I couldn't hope to list here. Feel free to search
 around on npm, if you're interested. I won't tell you which one to use, though
