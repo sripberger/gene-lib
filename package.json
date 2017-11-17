@@ -19,7 +19,7 @@
     "integration": "mocha ./test/setup.js ./test/integration --recursive -R spec || exit 0",
     "test": "npm run unit; npm run integration",
     "docs": "documentation build --config documentation.yml -f html -o docs",
-    "postversion": "npm run docs && gh-pages -d docs"
+    "postversion": "npm run docs && gh-pages -d docs && git push && git push --tags"
   },
   "author": "Steve Ripberger",
   "license": "Apache-2.0",
