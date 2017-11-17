@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: gene-pool.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: gene-pool.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const _ = require('lodash');
+const boolChance = require('bool-chance');
+const pasync = require('pasync');
+const BreedingScheme = require('./breeding-scheme');
+const resultSchemas = require('./result-schemas/selector');
+const addSchema = resultSchemas.add;
+const selectSchema = resultSchemas.select;
+
+/**
+ * Stores individuals between fitness calculation and selection for breeding.
+ * Contains logic for performing the selections and producing a BreedingScheme.
+ * @private
+ * @param {Selector} selector - Selctor instance containing individuals.
+ * @param {number} crossoverCount - Number of crossover operations that will
+ *   occur.
+ * @param {number} copyCount - Number of copy operations that will occur.
+ * @param {Object} [settings={}] - Settings object from ::run method.
+ */
+class GenePool {
+	constructor(selector, crossoverCount, copyCount, settings = {}) {
+		this.selector = selector;
+		this.crossoverCount = crossoverCount,
+		this.copyCount = copyCount;
+		this.settings = settings;
+	}
+
+	/**
+	 * Gets the largest possible number of crossver operations per generation.
+	 * @static
+	 * @param {number} generationSize - Size of a generation, from settings.
+	 * @param {number} childCount - Number of children produced per crossover,
+	 *   from settings.
+	 * @returns {number} - Generation size divided by child count.
+	 */
+	static getMaxCrossoverCount(generationSize, childCount) {
+		return generationSize / childCount;
+	}
+
+	/**
+	 * Gets counts for crossover and copy operations, determined randomly
+	 * based on the crossover rate.
+	 * @static
+	 * @param {Object} settings - Settings object from ::run method.
+	 * @returns {Object} - An object with two integer properties:
+	 *   `crossoverCount` and `copyCount`.
+	 */
+	static getLitterCounts(settings) {
+		let maxCrossoverCount = this.getMaxCrossoverCount(
+			settings.generationSize,
+			settings.childCount
+		);
+		let crossoverCount = 0;
+		let copyCount = 0;
+		if (settings.manualCrossoverCheck) {
+			crossoverCount = maxCrossoverCount;
+		} else {
+			_.times(maxCrossoverCount, () => {
+				if (boolChance.get(settings.crossoverRate)) {
+					crossoverCount += 1;
+				} else {
+					copyCount += 1;
+				}
+			});
+		}
+		return { crossoverCount, copyCount };
+	}
+
+	/**
+	 * Creates a new, empty instance from the provided settings object.
+	 * @static
+	 * @param {Object} settings - Settings object from ::run method.
+	 * @returns {GenePool} - Created instance.
+	 */
+	static create(settings) {
+		let Selector = settings.selectorClass;
+		let selector = new Selector(settings.selectorSettings);
+		let { crossoverCount, copyCount } = this.getLitterCounts(settings);
+		return new GenePool(selector, crossoverCount, copyCount, settings);
+	}
+
+	/**
+	 * Creates a new instance from the provided Population, using the
+	 * population's settings object and adding all individuals to the selector.
+	 * This operation will be either synchronous or asynchronous, depending on
+	 * the async.add setting.
+	 * @static
+	 * @param {Population} population - Source Population instance.
+	 * @returns {GenePool|Promise&lt;GenePool>} - Created instance, or a Promise
+	 *   resolving with one.
+	 */
+	static fromPopulation(population) {
+		let { async } = population.settings;
+		if (!async || !async.add) return this.fromPopulationSync(population);
+		return this.fromPopulationAsync(population);
+	}
+
+	/**
+	 * Synchronously creates a new instance from the provided Population
+	 * instance.
+	 * @static
+	 * @param {Population} population - Source Population instance.
+	 * @returns {GenePool} - Created instance.
+	 */
+	static fromPopulationSync(population) {
+		let pool = this.create(population.settings);
+		let { selector } = pool;
+		for (let individual of population.individuals) {
+			addSchema.validateSync(selector.add(individual));
+		}
+		return pool;
+	}
+
+	/**
+	 * Asynchronously Creates a new instance from the provided Population.
+	 * @static
+	 * @param {Population} population - Source Population instance.
+	 * @returns {Promise&lt;GenePool>} - Will resolve with the created instance.
+	 */
+	static fromPopulationAsync(population) {
+		let pool = this.create(population.settings);
+		let { selector } = pool;
+		return pasync.eachLimit(
+			population.individuals,
+			population.settings.async.add,
+			(individual) => addSchema.validateAsync(selector.add(individual))
+		)
+			.then(() => pool);
+	}
+
+	/**
+	 * Gets the number of individuals that must be selected for breeding.
+	 * @returns {number} - Selection total, based on the litter counts as well
+	 * as the childCount and parentCount settings.
+	 */
+	getSelectionCount() {
+		let { settings, crossoverCount, copyCount } = this;
+		let { parentCount, childCount } = settings;
+		return (crossoverCount * parentCount) + (childCount * copyCount);
+	}
+
+	/**
+	 * Performs all selections for this generation, producing a new
+	 * BreedingScheme instance. This operation will be either synchronous or
+	 * asynchronous depending on the async.select setting.
+	 * @returns {BreedingScheme|Promise&lt;BreedingScheme>} - Resulting
+	 *   BreedingScheme instance, or a promise resolving with one.
+	 */
+	performSelections() {
+		let { async } = this.settings;
+		if (!async || !async.select) return this.performSelectionsSync();
+		return this.performSelectionsAsync();
+	}
+
+	/**
+	 * Synchronously performs all selections for this generation.
+	 * @returns {BreedingScheme} - Resulting BreedingScheme instance.
+	 */
+	performSelectionsSync() {
+		let { crossoverCount, copyCount, settings } = this;
+		let { parentCount, childCount } = settings;
+		let individuals = _.times(
+			this.getSelectionCount(),
+			() => selectSchema.validateSync(this.selector.select())
+		);
+		let crossovers = _(individuals)
+			.take(crossoverCount * parentCount)
+			.chunk(parentCount)
+			.value();
+		let copies = _.takeRight(individuals, copyCount * childCount);
+		return new BreedingScheme(crossovers, copies, settings);
+	}
+
+	/**
+	 * Asynchronously performs all selections for this generation.
+	 * @returns {Promise&lt;BreedingScheme>} - Will resolve with the resulting
+	 *   BreedingScheme instance.
+	 */
+	performSelectionsAsync() {
+		let { crossoverCount, copyCount, settings } = this;
+		let { parentCount, childCount } = settings;
+		return pasync.timesLimit(
+			this.getSelectionCount(),
+			settings.async.select,
+			() => selectSchema.validateAsync(this.selector.select())
+		)
+			.then((individuals) => {
+				let crossovers = _(individuals)
+					.take(crossoverCount * parentCount)
+					.chunk(parentCount)
+					.value();
+				let copies = _.takeRight(individuals, copyCount * childCount);
+				return new BreedingScheme(crossovers, copies, settings);
+			});
+	}
+}
+
+module.exports = GenePool;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArraySelector.html">ArraySelector</a></li><li><a href="CachingChromosome.html">CachingChromosome</a></li><li><a href="Chromosome.html">Chromosome</a></li><li><a href="RouletteSelector.html">RouletteSelector</a></li><li><a href="Selector.html">Selector</a></li><li><a href="TournamentSelector.html">TournamentSelector</a></li></ul><h3>Global</h3><ul><li><a href="global.html#getRandomIndex">getRandomIndex</a></li><li><a href="global.html#getRandomIndices">getRandomIndices</a></li><li><a href="global.html#getRandomRange">getRandomRange</a></li><li><a href="global.html#pmx">pmx</a></li><li><a href="global.html#registerSelector">registerSelector</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#runSync">runSync</a></li><li><a href="global.html#singlePointCrossover">singlePointCrossover</a></li><li><a href="global.html#twoPointCrossover">twoPointCrossover</a></li><li><a href="global.html#uniformCrossover">uniformCrossover</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Nov 16 2017 21:55:25 GMT-0500 (EST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

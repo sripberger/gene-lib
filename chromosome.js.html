@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: chromosome.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: chromosome.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const _ = require('lodash');
+const XError = require('xerror');
+
+/**
+ * Base class for chromosomes. It is not necessary for your chromosome objects
+ * to inherit from this class. They must, however, implement its instance
+ * methods.
+ * @property {Object} [async] - Set to specify asynchronous operations.
+ *   Chromosome classes with this property set cannot be used with the
+ *   `::runSync` method.
+ *   @property {number|boolean} [async.getFitness] - Maximum concurrency of
+ *     asynchronous `#getFitness` operations. `true` is interpeted as `1`.
+ *     If set, `#getFitness` must return a promise. Otherwise, it must return a
+ *     number as normal.
+ *   @property {number|boolean} [async.crossover] - Maximum concurrency of
+ *     asynchronous `#crossover` operations. `true` is interpeted as `1`. If
+ *     set, `#crossover` must return a promise. Otherwise, it must return a
+ *     single child or array of children as normal.
+ *   @property {number} [async.mutate] - Maximum concurrency of asynchronous
+ *     `#mutate' operations. `true` is interpeted as `1`. If set, `#mutate` must
+ *     return a promise. Otherwise, it must return a single mutant chromosome as
+ *     normal.
+ */
+class Chromosome {
+	/**
+	 * Performs a duck-type check on an object, to ensure it implements the
+	 * required chromosome methods.
+	 * @param {Object} obj - Object to check.
+	 * @returns {boolean} True if the object is a chromosome, false otherwise.
+	 */
+	static isChromosome(obj) {
+		return !!obj &amp;&amp; _.isFunction(obj.getFitness);
+	}
+
+	/**
+	 * Should create a new chromosome for the initial population, potentially
+	 * using the provided arguments. You must implement this method if and only
+	 * if you're using the `::run` method's settings.chromosomeClass option.
+	 * @abstract
+	 * @param {...*} args - Arguments provided by the `::run` method's
+	 *   settings.createArg or settings.createArgs options.
+	 * @returns {Object|Promise&lt;Object>} A chromosome object, or a promise that
+	 *   resolves with one. If a promise is to be returned, you must set the
+	 *   async.create option.
+	 */
+	static create() {
+		throw new XError(
+			XError.UNSUPPORTED_OPERATION,
+			'Chromosome ::create method not implemented. Override it, or ' +
+			'replace your chromosomeClass setting with a createChromosome ' +
+			'setting.'
+		);
+	}
+
+	/**
+	 * Should get the fitness of the chromosome. Normally this method will
+	 * only be called once for a given chromsome. The result will be cached
+	 * internally in gene-lib. If you need access to the fitness in one of the
+	 * other chromsome methods, however, and still wish to make sure not to
+	 * perform calculations multiple times, consider using the CachingChromsome
+	 * class.
+	 * @abstract
+	 * @returns {number|Promise&lt;number>} The fitness of the chromsome, or a
+	 *   promise resolving with it. If a promise is to be returned, you must
+	 *   set the async.getFitness option.
+	 */
+	getFitness() {
+		throw new XError(
+			XError.UNSUPPORTED_OPERATION,
+			'Chromsome subclasses must override #getFitness'
+		);
+	}
+
+	/**
+	 * Should return the result of a crossover operation, without changing any
+	 * parents. You must implement this method if and only if the
+	 * settings.crossoverRate is greater than zero, or the
+	 * settings.manualCrossoverCheck option is set.
+	 * @abstract
+	 * @param {...Object} others - Other parent chromosome objects. The number
+	 *   of them will equal settings.parentCount
+	 * @param {number} rate - Crossover rate given by settings.crossoverRate.
+	 *   Crossovers are already rate-checked internally, so there is usually no
+	 *   need to use this argument, but it is included just in case.
+	 * @returns {Object|Array&lt;Object>|Promise&lt;Object>|Promise&lt;Array>} A single
+	 *   child, an array of children, or a promise that resolves with either.
+	 *   The length of the result must match settings.childCount. If a promise
+	 *   is to be returned, you must set the async.crossover option.
+	 */
+	crossover() {
+		throw new XError(
+			XError.UNSUPPORTED_OPERATION,
+			'Chromsome subclasses must override #crossover if there is a ' +
+			'nonzero crossover rate.'
+		);
+	}
+
+	/**
+	 * Should return the result of a mutation operation, without changing the
+	 * original. You must implement this method if and only if the
+	 * settings.mutationRate is greater than zero.
+	 * @abstract
+	 * @param {number} rate - Mutation rate given by settings.mutationRate.
+	 * @returns {Object|Promise&lt;Object>} A mutant chromosome, or a promise that
+	 *   resolves with one. if a promise is to be returned, you must set the
+	 *   async.mutate option.
+	 */
+	mutate() {
+		throw new XError(
+			XError.UNSUPPORTED_OPERATION,
+			'Chromsome subclasses must override #mutate if there is a ' +
+			'nonzero mutation rate.'
+		);
+	}
+}
+
+module.exports = Chromosome;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArraySelector.html">ArraySelector</a></li><li><a href="CachingChromosome.html">CachingChromosome</a></li><li><a href="Chromosome.html">Chromosome</a></li><li><a href="RouletteSelector.html">RouletteSelector</a></li><li><a href="Selector.html">Selector</a></li><li><a href="TournamentSelector.html">TournamentSelector</a></li></ul><h3>Global</h3><ul><li><a href="global.html#getRandomIndex">getRandomIndex</a></li><li><a href="global.html#getRandomIndices">getRandomIndices</a></li><li><a href="global.html#getRandomRange">getRandomRange</a></li><li><a href="global.html#pmx">pmx</a></li><li><a href="global.html#registerSelector">registerSelector</a></li><li><a href="global.html#run">run</a></li><li><a href="global.html#runSync">runSync</a></li><li><a href="global.html#singlePointCrossover">singlePointCrossover</a></li><li><a href="global.html#twoPointCrossover">twoPointCrossover</a></li><li><a href="global.html#uniformCrossover">uniformCrossover</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Nov 16 2017 21:55:25 GMT-0500 (EST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
