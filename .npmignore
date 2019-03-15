@@ -1,4 +1,6 @@
-.eslintrc
-.eslintignore
-todo.md
 test/
+docs/
+.eslintrc.yaml
+.eslintignore
+.gitignore
+documentation.yaml
